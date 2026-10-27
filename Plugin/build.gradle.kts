@@ -66,10 +66,6 @@ dependencies {
     // RedisBungee
     compileOnly(libs.redisbungee)
 
-    // bStats
-    librarian(libs.bstats.velocity)
-    librarian(libs.bstats.bukkit)
-
     // Paper / Bukkit / Spigot
     compileOnly(libs.paper.api)
     compileOnly(libs.adventure.api)
@@ -84,6 +80,16 @@ dependencies {
 
     // NanoLimboPlugin
     compileOnly(libs.nanolimbo.api)
+
+    // Tests
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.caffeine)
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 tasks.withType<ProcessResources> {
@@ -112,7 +118,7 @@ val excludedLibs = listOf(
 )
 
 tasks.withType<ShadowJar> {
-    archiveFileName.set("LibreLogin.jar")
+    archiveFileName.set("TemsLogin.jar")
 
     dependencies {
         excludedLibs.forEach { exclude(dependency(it)) }
@@ -153,21 +159,10 @@ mcupload {
                 }
             }
         } else if (System.getProperty("buildTarget") == "release") {
-            modrinth {
-                loaders = listOf("paper", "purpur", "spigot", "bukkit", "velocity")
-                projectId = "tL0SCXYq"
-                gameVersions = listOf(
-                    "26.3", "26.2", "26.1.2", "26.1.1", "26.1",
-                    "1.21.11", "1.21.10", "1.21.9", "1.21.8", "1.21.7", "1.21.6", "1.21.5",
-                    "1.21.4", "1.21.3", "1.21.2", "1.21.1", "1.21",
-                    "1.20.6", "1.20.5", "1.20.4", "1.20.3", "1.20.2", "1.20.1", "1.20",
-                    "1.19.4", "1.19.3", "1.19.2", "1.19.1", "1.19",
-                )
-                token = System.getenv("MODRINTH_TOKEN")
-            }
+            // Modrinth publishing is intentionally not configured: this fork must not publish to the upstream project.
             github {
                 token = System.getenv("GITHUB_TOKEN")
-                repository = "Phantom6422/LibreLogin"
+                repository = "Phantom6422/TemsLogin"
             }
             discord {
                 webhookUrl = System.getenv("DISCORD_WEBHOOK_URL")

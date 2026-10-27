@@ -6,9 +6,14 @@
 
 package xyz.kyngs.librelogin.paper;
 
+import org.jetbrains.annotations.Nullable;
 import xyz.kyngs.librelogin.paper.protocol.ClientPublicKey;
 
 import java.util.UUID;
 
-public record EncryptionData(String username, byte[] token, ClientPublicKey publicKey, UUID uuid) {
+/**
+ * @param uuid      the UUID the server should use for this player (may be a spoofed/cracked one)
+ * @param premiumId the Mojang UUID expected from the session server, used to validate the session
+ */
+public record EncryptionData(String username, byte[] token, ClientPublicKey publicKey, UUID uuid, @Nullable UUID premiumId) {
 }

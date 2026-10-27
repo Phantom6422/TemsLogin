@@ -22,8 +22,11 @@ public class LibreLoginMySQLDatabaseProvider extends LibreLoginSQLDatabaseProvid
 
     @Override
     protected List<String> getColumnNames(Connection connection) throws SQLException {
-        var resultSet = connection.prepareStatement("SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='librepremium_data' and TABLE_SCHEMA='" + ((AuthenticMySQLDatabaseConnector) connector).get(AuthenticMySQLDatabaseConnector.Configuration.NAME) + "'")
-                .executeQuery();
+        // The database name comes from the configuration and must be bound as a parameter, not concatenated.
+        var ps = connection.prepareStatement("SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='librepremium_data' AND TABLE_SCHEMA=?");
+        ps.setString(1, ((AuthenticMySQLDatabaseConnector) connector).get(AuthenticMySQLDatabaseConnector.Configuration.NAME));
+
+        var resultSet = ps.executeQuery();
 
         var columns = new ArrayList<String>();
         while (resultSet.next()) {

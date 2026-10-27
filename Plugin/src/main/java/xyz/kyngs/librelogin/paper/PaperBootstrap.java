@@ -53,7 +53,7 @@ public class PaperBootstrap extends JavaPlugin implements LibreLoginProvider<Pla
             var platformClass = Class.forName("xyz.kyngs.librelogin.paper.PaperLibreLogin");
             libreLogin = (PlatformLifecycle) platformClass.getConstructor(PaperBootstrap.class).newInstance(this);
         } catch (Throwable throwable) {
-            getLogger().severe("Failed to initialize LibreLogin, is PacketEvents installed and up to date?");
+            getLogger().severe("Failed to initialize TemsLogin, is PacketEvents installed and up to date?");
             throwable.printStackTrace();
             failed = true;
         }
@@ -62,12 +62,12 @@ public class PaperBootstrap extends JavaPlugin implements LibreLoginProvider<Pla
     @Override
     public void onEnable() {
         if (failed || libreLogin == null) {
-            getLogger().severe("LibreLogin failed to initialize, disabling the plugin. Check the console for details.");
+            getLogger().severe("TemsLogin failed to initialize, disabling the plugin. Check the console for details.");
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
 
-        getLogger().info("Bootstrapping LibreLogin...");
+        getLogger().info("Bootstrapping TemsLogin...");
         libreLogin.enablePlatform();
     }
 

@@ -10,6 +10,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import com.google.gson.JsonObject;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.util.reflection.Reflection;
@@ -20,6 +21,7 @@ import com.github.retrooper.packetevents.wrapper.login.server.WrapperLoginServer
 import io.github.retrooper.packetevents.util.SpigotReflectionUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
+import org.jetbrains.annotations.Nullable;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -42,6 +44,7 @@ import xyz.kyngs.librelogin.paper.protocol.EncryptionUtil;
 import xyz.kyngs.librelogin.paper.protocol.ProtocolUtil;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
@@ -61,16 +64,18 @@ public class PaperListeners extends AuthenticListeners<PaperLibreLogin, Player, 
     private static Method cipherMethod;
 
     static {
-        Class<?> tempClass;
-        try {
-            tempClass = Class.forName("net.minecraft.util.Crypt");
-        } catch (ClassNotFoundException e) {
+        Class<?> tempClass = null;
+
+        // Only needed for the pre-1.16.4 encryption path. If the class is missing on a newer server,
+        // failing the whole class initialisation would break every login, so it is resolved lazily instead.
+        for (String name : new String[]{"net.minecraft.util.Crypt", "net.minecraft.util.MinecraftEncryption"}) {
             try {
-                tempClass = Class.forName("net.minecraft.util.MinecraftEncryption");
-            } catch (ClassNotFoundException ex) {
-                throw new RuntimeException(ex);
+                tempClass = Class.forName(name);
+                break;
+            } catch (ClassNotFoundException ignored) {
             }
         }
+
         ENCRYPTION_CLASS = tempClass;
     }
 
@@ -145,6 +150,13 @@ public class PaperListeners extends AuthenticListeners<PaperLibreLogin, Player, 
         if (plugin.fromFloodgate(event.getName())) return;
 
         var user = plugin.getDatabaseProvider().getByName(event.getName());
+
+        if (user == null) {
+            // The login flow normally creates the row before this event fires. If it does not exist yet,
+            // there is nothing reliable to spoof, so let the server use its own profile.
+            plugin.getLogger().debug("No database entry for " + event.getName() + " during pre-login, skipping profile spoofing");
+            return;
+        }
 
         var newProfile = PaperUtil.createProfileExact(user.getUuid(), event.getName());
 
@@ -273,7 +285,7 @@ public class PaperListeners extends AuthenticListeners<PaperLibreLogin, Player, 
 
                         var newPacket = new WrapperLoginServerEncryptionRequest("", keyPair.getPublic(), token);
 
-                        encryptionDataCache.put(sessionKey, new EncryptionData(username, token, clientKey.orElse(null), preLoginResult.user().getUuid()));
+                        encryptionDataCache.put(sessionKey, new EncryptionData(username, token, clientKey.orElse(null), preLoginResult.user().getUuid(), preLoginResult.user().getPremiumUUID()));
 
                         PacketEvents.getAPI().getProtocolManager().sendPacket(event.getChannel(), newPacket);
                     } catch (Exception e) {
@@ -302,6 +314,7 @@ public class PaperListeners extends AuthenticListeners<PaperLibreLogin, Player, 
 
             if (!verifyNonce(packet, data.publicKey(), expectedToken)) {
                 kickPlayer("Invalid nonce", user);
+                return;
             }
 
             //Verify session
@@ -330,7 +343,7 @@ public class PaperListeners extends AuthenticListeners<PaperLibreLogin, Player, 
             var address = user.getAddress();
 
             try {
-                if (hasJoined(username, serverId, address.getAddress())) {
+                if (hasJoined(username, serverId, address.getAddress(), data.premiumId())) {
                     receiveFakeStartPacket(username, data.publicKey(), event.getChannel(), data.uuid());
                 } else {
                     kickPlayer("Invalid session", user);
@@ -375,22 +388,68 @@ public class PaperListeners extends AuthenticListeners<PaperLibreLogin, Player, 
         PacketEvents.getAPI().getProtocolManager().receivePacketSilently(channel, startPacket);
     }
 
-    public boolean hasJoined(String username, String serverHash, InetAddress hostIp) throws IOException {
-        String url;
-        if (hostIp instanceof Inet6Address || plugin.getConfiguration().get(ConfigurationKeys.ALLOW_PROXY_CONNECTIONS)) {
-            url = String.format("https://sessionserver.mojang.com/session/minecraft/hasJoined?username=%s&serverId=%s", username, serverHash);
-        } else {
-            var encodedIP = URLEncoder.encode(hostIp.getHostAddress(), StandardCharsets.UTF_8);
-            url = String.format("https://sessionserver.mojang.com/session/minecraft/hasJoined?username=%s&serverId=%s&ip=%s", username, serverHash, encodedIP);
+    /**
+     * Verifies the client session with Mojang's session server.
+     * <p>
+     * Fails closed: only an HTTP 200 response whose profile id and name match the expected values counts as
+     * a successful join. Anything else (204, rate limits, server errors, malformed bodies) is a failure. Treating
+     * error responses as success would let anyone log into a premium account by forcing the API to error out.
+     */
+    public boolean hasJoined(String username, String serverHash, InetAddress hostIp, @Nullable UUID expectedPremiumId) throws IOException {
+        var query = "username=" + URLEncoder.encode(username, StandardCharsets.UTF_8)
+                    + "&serverId=" + URLEncoder.encode(serverHash, StandardCharsets.UTF_8);
+
+        if (!(hostIp instanceof Inet6Address) && !plugin.getConfiguration().get(ConfigurationKeys.ALLOW_PROXY_CONNECTIONS)) {
+            query += "&ip=" + URLEncoder.encode(hostIp.getHostAddress(), StandardCharsets.UTF_8);
         }
 
-        var conn = (HttpURLConnection) new URL(url).openConnection();
+        var conn = (HttpURLConnection) URI.create("https://sessionserver.mojang.com/session/minecraft/hasJoined?" + query).toURL().openConnection();
         conn.setConnectTimeout(5000);
         conn.setReadTimeout(5000);
-        conn.connect();
-        int responseCode = conn.getResponseCode();
-        conn.disconnect();
-        return responseCode != 204;
+        conn.setRequestProperty("User-Agent", "TemsLogin");
+
+        try {
+            var responseCode = conn.getResponseCode();
+
+            if (responseCode == HttpURLConnection.HTTP_NO_CONTENT) {
+                return false; // The client did not join this session.
+            }
+
+            if (responseCode != HttpURLConnection.HTTP_OK) {
+                throw new IOException("Session server responded with HTTP " + responseCode);
+            }
+
+            try (var reader = new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8)) {
+                var response = AuthenticLibreLogin.GSON.fromJson(reader, JsonObject.class);
+
+                if (response == null) {
+                    return false;
+                }
+
+                var id = response.get("id");
+                var name = response.get("name");
+
+                if (id == null || id.isJsonNull() || name == null || name.isJsonNull()) {
+                    return false;
+                }
+
+                if (!name.getAsString().equalsIgnoreCase(username)) {
+                    return false;
+                }
+
+                if (expectedPremiumId == null) {
+                    // The database UUID may legitimately differ from the Mojang one (RANDOM/CRACKED UUID creators),
+                    // so the session proof and the name match are what authenticate the player here.
+                    return true;
+                }
+
+                var returnedId = GeneralUtil.fromUnDashedUUID(id.getAsString());
+
+                return expectedPremiumId.equals(returnedId);
+            }
+        } finally {
+            conn.disconnect();
+        }
     }
 
     /**
@@ -399,7 +458,14 @@ public class PaperListeners extends AuthenticListeners<PaperLibreLogin, Player, 
     private boolean enableEncryption(SecretKey loginKey, com.github.retrooper.packetevents.protocol.player.User user, Object channel) throws IllegalArgumentException {
         // Initialize method reflections
         if (encryptMethod == null) {
-            Class<?> networkManagerClass = SpigotReflectionUtil.getNetworkManagers().get(0).getClass();
+            var networkManagers = SpigotReflectionUtil.getNetworkManagers();
+
+            if (networkManagers.isEmpty()) {
+                plugin.getLogger().error("Cannot find any active network manager, unable to enable encryption");
+                return false;
+            }
+
+            Class<?> networkManagerClass = networkManagers.get(0).getClass();
 
             // Try to get the old (pre MC 1.16.4) encryption method
             encryptMethod = Reflection.getMethod(networkManagerClass, "setupEncryption", SecretKey.class);
@@ -412,6 +478,11 @@ public class PaperListeners extends AuthenticListeners<PaperLibreLogin, Player, 
             if (encryptMethod == null) {
                 // Get the 1.16.4-1.21.0 encryption method
                 encryptMethod = Reflection.getMethod(networkManagerClass, "setEncryptionKey", Cipher.class, Cipher.class);
+
+                if (ENCRYPTION_CLASS == null) {
+                    plugin.getLogger().error("Cannot locate the server encryption class, unable to enable encryption");
+                    return false;
+                }
 
                 // Get the needed Cipher helper method (used to generate ciphers from login key)
                 cipherMethod = Reflection.getMethod(ENCRYPTION_CLASS, "a", int.class, Key.class);
@@ -467,7 +538,9 @@ public class PaperListeners extends AuthenticListeners<PaperLibreLogin, Player, 
             if (getServerVersion().isNewerThanOrEquals(ServerVersion.V_1_19)
                 && !getServerVersion().isNewerThanOrEquals(ServerVersion.V_1_19_3)) {
                 if (clientPublicKey == null) {
-                    return EncryptionUtil.verifyNonce(expectedToken, keyPair.getPrivate(), packet.getEncryptedVerifyToken().get());
+                    var encryptedToken = packet.getEncryptedVerifyToken().orElse(null);
+
+                    return encryptedToken != null && EncryptionUtil.verifyNonce(expectedToken, keyPair.getPrivate(), encryptedToken);
                 } else {
                     PublicKey publicKey = clientPublicKey.key();
                     var optSignature = packet.getSaltSignature();
@@ -479,7 +552,12 @@ public class PaperListeners extends AuthenticListeners<PaperLibreLogin, Player, 
                     return EncryptionUtil.verifySignedNonce(expectedToken, publicKey, signature.getSalt(), signature.getSignature());
                 }
             } else {
-                byte[] nonce = packet.getEncryptedVerifyToken().get();
+                byte[] nonce = packet.getEncryptedVerifyToken().orElse(null);
+
+                if (nonce == null) {
+                    return false;
+                }
+
                 return EncryptionUtil.verifyNonce(expectedToken, keyPair.getPrivate(), nonce);
             }
         } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException | NoSuchPaddingException

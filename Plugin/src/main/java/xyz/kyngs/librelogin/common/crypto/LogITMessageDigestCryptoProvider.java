@@ -7,6 +7,7 @@
 package xyz.kyngs.librelogin.common.crypto;
 
 import xyz.kyngs.librelogin.api.crypto.HashedPassword;
+import xyz.kyngs.librelogin.common.util.GeneralUtil;
 
 public class LogITMessageDigestCryptoProvider extends MessageDigestCryptoProvider {
     public LogITMessageDigestCryptoProvider(String identifier, String md) {
@@ -17,8 +18,13 @@ public class LogITMessageDigestCryptoProvider extends MessageDigestCryptoProvide
     public boolean matches(String input, HashedPassword password) {
         var salt = password.salt();
         var hash = password.hash();
+
+        if (hash == null) {
+            return false;
+        }
+
         var hashedInput = salt == null ? plainHash(input) : plainHash(input + salt);
-        return hashedInput.equals(hash);
+        return GeneralUtil.constantTimeEquals(hashedInput, hash);
     }
 
     @Override

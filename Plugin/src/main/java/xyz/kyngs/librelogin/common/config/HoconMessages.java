@@ -77,11 +77,11 @@ public class HoconMessages implements Messages {
                           You can find more information about the format on the sponge wiki:
                           https://docs.spongepowered.org/stable/en/server/getting-started/configuration/hocon.html
                           ----------------------------------------------------------------------------------------
-                          LibreLogin Messages
+                          TemsLogin Messages
                           ----------------------------------------------------------------------------------------
                           This file contains all of the messages used by the plugin, you are welcome to fit it to your needs.
                           The messages can be written both in the legacy format and in the MiniMessage format. For example, the following message is completely valid: <bold>&aReloaded!</bold>
-                          You can find more information about LibreLogin on the github page:
+                          TemsLogin is a fork of LibreLogin. Upstream documentation can be found here:
                           https://github.com/kyngs/LibreLogin
                         """,
                 logger,

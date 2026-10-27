@@ -1,5 +1,5 @@
-name: "LibreLogin"
-author: "kyngs"
+name: "TemsLogin"
+author: "kyngs, Tems"
 version: '${version}'
 main: "xyz.kyngs.librelogin.paper.PaperBootstrap"
 loader: "xyz.kyngs.librelogin.paper.PaperLoader"

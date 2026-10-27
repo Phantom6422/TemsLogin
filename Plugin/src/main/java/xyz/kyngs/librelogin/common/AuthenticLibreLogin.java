@@ -15,7 +15,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.kyori.adventure.audience.Audience;
-import org.bstats.charts.CustomChart;
 import org.jetbrains.annotations.Nullable;
 import xyz.kyngs.librelogin.api.BiHolder;
 import xyz.kyngs.librelogin.api.LibreLoginPlugin;
@@ -71,6 +70,7 @@ import xyz.kyngs.librelogin.common.util.GeneralUtil;
 
 import java.io.*;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.sql.Timestamp;
@@ -86,6 +86,12 @@ public abstract class AuthenticLibreLogin<P, S> implements LibreLoginPlugin<P, S
 
     public static final Gson GSON = new Gson();
     public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd. MM. yyyy HH:mm");
+    /**
+     * BCrypt only uses the first 72 bytes of a password, so longer passwords are rejected instead of being
+     * silently truncated (which would make different passwords equivalent).
+     */
+    public static final int MAX_PASSWORD_BYTES = 72;
+    private static final long MAX_FORBIDDEN_PASSWORDS_SIZE = 64L * 1024 * 1024;
     public static final ExecutorService EXECUTOR;
 
     static {
@@ -174,15 +180,21 @@ public abstract class AuthenticLibreLogin<P, S> implements LibreLoginPlugin<P, S
 
     @Override
     public boolean validPassword(String password) {
-        var length = password.length() >= configuration.get(MINIMUM_PASSWORD_LENGTH);
-
-        if (!length) {
+        if (password == null) {
             return false;
         }
 
-        var upper = password.toUpperCase();
+        if (password.length() < configuration.get(MINIMUM_PASSWORD_LENGTH)) {
+            return false;
+        }
 
-        return !forbiddenPasswords.contains(upper);
+        // BCrypt silently ignores everything after 72 bytes, so accepting longer passwords would make
+        // two different passwords authenticate the same account. Rejecting them keeps hashes unambiguous.
+        if (password.getBytes(StandardCharsets.UTF_8).length > MAX_PASSWORD_BYTES) {
+            return false;
+        }
+
+        return !forbiddenPasswords.contains(password.toUpperCase(Locale.ROOT));
     }
 
     @Override
@@ -230,18 +242,17 @@ public abstract class AuthenticLibreLogin<P, S> implements LibreLoginPlugin<P, S
         }
 
         var folder = getDataFolder();
+
         if (!folder.exists()) {
-            var oldFolder = new File(folder.getParentFile(), folder.getName().equals("librelogin") ? "librepremium" : "LibrePremium");
-            if (oldFolder.exists()) {
-                logger.info("Migrating configuration and messages from old folder...");
-                if (!oldFolder.renameTo(folder)) {
-                    throw new RuntimeException("Can't migrate configuration and messages from old folder!");
-                }
-            }
+            migrateLegacyDataFolder(folder);
         }
 
-        try {
-            Files.copy(getResourceAsStream("LICENSE.txt"), new File(folder, "LICENSE.txt").toPath(), StandardCopyOption.REPLACE_EXISTING);
+        try (var license = getResourceAsStream("LICENSE.txt")) {
+            if (license != null) {
+                Files.copy(license, new File(folder, "LICENSE.txt").toPath(), StandardCopyOption.REPLACE_EXISTING);
+            } else {
+                logger.warn("Bundled LICENSE.txt is missing, the plugin is still licensed under the MPL-2.0");
+            }
         } catch (IOException ignored) {
             // Silently ignore
         }
@@ -309,7 +320,7 @@ public abstract class AuthenticLibreLogin<P, S> implements LibreLoginPlugin<P, S
         commandProvider = new CommandProvider<>(this);
 
         if (version.dev()) {
-            logger.warn("!! YOU ARE RUNNING A DEVELOPMENT BUILD OF LIBRELOGIN !!");
+            logger.warn("!! YOU ARE RUNNING A DEVELOPMENT BUILD OF TEMSLOGIN !!");
             logger.warn("!! THIS IS NOT A RELEASE, USE THIS ONLY IF YOU WERE INSTRUCTED TO DO SO. DO NOT USE THIS IN PRODUCTION !!");
         } else {
             initMetrics();
@@ -329,6 +340,29 @@ public abstract class AuthenticLibreLogin<P, S> implements LibreLoginPlugin<P, S
 
         if (multiProxyEnabled()) {
             logger.info("Detected MultiProxy setup, enabling MultiProxy support...");
+        }
+    }
+
+    /**
+     * Renames a data folder left behind by an older plugin name (or by upstream LibreLogin) to the current one,
+     * so that existing configurations, messages and databases keep working after the rebrand.
+     */
+    private void migrateLegacyDataFolder(File folder) {
+        for (String legacyName : List.of("librelogin", "librepremium", "LibreLogin", "LibrePremium")) {
+            var oldFolder = new File(folder.getParentFile(), legacyName);
+
+            if (oldFolder.equals(folder) || !oldFolder.isDirectory()) {
+                continue;
+            }
+
+            logger.info("Migrating configuration and messages from the legacy folder '%s'...".formatted(legacyName));
+
+            if (oldFolder.renameTo(folder)) {
+                return;
+            }
+
+            logger.error("Failed to migrate the legacy folder '%s', please move its contents to '%s' manually".formatted(legacyName, folder.getName()));
+            return;
         }
     }
 
@@ -373,7 +407,7 @@ public abstract class AuthenticLibreLogin<P, S> implements LibreLoginPlugin<P, S
 
         } catch (Exception e) {
             var cause = GeneralUtil.getFurthestCause(e);
-            logger.error("!! THIS IS MOST LIKELY NOT AN ERROR CAUSED BY LIBRELOGIN !!");
+            logger.error("!! THIS IS MOST LIKELY NOT AN ERROR CAUSED BY TEMSLOGIN !!");
             logger.error("Failed to connect to the database, this most likely is caused by wrong credentials. Cause: %s: %s".formatted(cause.getClass().getSimpleName(), cause.getMessage()));
             shutdownProxy(1);
         }
@@ -409,7 +443,7 @@ public abstract class AuthenticLibreLogin<P, S> implements LibreLoginPlugin<P, S
             shutdownProxy(1);
         } catch (CorruptedConfigurationException e) {
             var cause = GeneralUtil.getFurthestCause(e);
-            logger.error("!! THIS IS MOST LIKELY NOT AN ERROR CAUSED BY LIBRELOGIN !!");
+            logger.error("!! THIS IS MOST LIKELY NOT AN ERROR CAUSED BY TEMSLOGIN !!");
             logger.error("!!The messages are corrupted, please look below for further clues. If you are clueless, delete the messages and a new ones will be created for you. Cause: %s: %s".formatted(cause.getClass().getSimpleName(), cause.getMessage()));
             shutdownProxy(1);
         }
@@ -446,7 +480,7 @@ public abstract class AuthenticLibreLogin<P, S> implements LibreLoginPlugin<P, S
             shutdownProxy(1);
         } catch (CorruptedConfigurationException e) {
             var cause = GeneralUtil.getFurthestCause(e);
-            logger.error("!! THIS IS MOST LIKELY NOT AN ERROR CAUSED BY LIBRELOGIN !!");
+            logger.error("!! THIS IS MOST LIKELY NOT AN ERROR CAUSED BY TEMSLOGIN !!");
             logger.error("!!The configuration is corrupted, please look below for further clues. If you are clueless, delete the config and a new one will be created for you. Cause: %s: %s".formatted(cause.getClass().getSimpleName(), cause.getMessage()));
             shutdownProxy(1);
         }
@@ -585,14 +619,23 @@ public abstract class AuthenticLibreLogin<P, S> implements LibreLoginPlugin<P, S
 
         if (!file.exists()) {
             logger.info("Forbidden passwords list doesn't exist, downloading...");
-            try (BufferedInputStream in = new BufferedInputStream(URI.create("https://raw.githubusercontent.com/Phantom6422/LibreLogin/dev/forbidden-passwords.txt").toURL().openStream())) {
+            try (BufferedInputStream in = new BufferedInputStream(URI.create("https://raw.githubusercontent.com/Phantom6422/TemsLogin/dev/forbidden-passwords.txt").toURL().openStream())) {
                 if (!file.createNewFile()) {
                     throw new IOException("Failed to create file");
                 }
                 try (var fos = new FileOutputStream(file)) {
                     var dataBuffer = new byte[1024];
+                    long total = 0;
                     int bytesRead;
                     while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
+                        total += bytesRead;
+
+                        // The real list is a few megabytes. Refusing oversized downloads prevents a
+                        // misbehaving or compromised endpoint from filling the disk.
+                        if (total > MAX_FORBIDDEN_PASSWORDS_SIZE) {
+                            throw new IOException("Forbidden passwords list is larger than the allowed maximum");
+                        }
+
                         fos.write(dataBuffer, 0, bytesRead);
                     }
                 }
@@ -600,11 +643,17 @@ public abstract class AuthenticLibreLogin<P, S> implements LibreLoginPlugin<P, S
             } catch (IOException e) {
                 e.printStackTrace();
                 logger.warn("Failed to download forbidden passwords list, using template instead");
-                Files.copy(getResourceAsStream("forbidden-passwords-template.txt"), file.toPath());
+
+                try (var template = getResourceAsStream("forbidden-passwords-template.txt")) {
+                    if (template == null) {
+                        throw new IOException("The bundled forbidden passwords template is missing");
+                    }
+                    Files.copy(template, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                }
             }
         }
 
-        try (var reader = new BufferedReader(new FileReader(file))) {
+        try (var reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 if (line.startsWith("# ")) {
@@ -619,9 +668,9 @@ public abstract class AuthenticLibreLogin<P, S> implements LibreLoginPlugin<P, S
         logger.info("Checking for updates...");
 
         try {
-            var connection = URI.create("https://api.github.com/repos/Phantom6422/LibreLogin/releases").toURL().openConnection();
+            var connection = URI.create("https://api.github.com/repos/Phantom6422/TemsLogin/releases").toURL().openConnection();
 
-            connection.setRequestProperty("User-Agent", "LibreLogin");
+            connection.setRequestProperty("User-Agent", "TemsLogin");
             connection.setConnectTimeout(5000);
             connection.setReadTimeout(5000);
 
@@ -685,10 +734,10 @@ public abstract class AuthenticLibreLogin<P, S> implements LibreLoginPlugin<P, S
             }
 
             if (behind.isEmpty()) {
-                logger.info("You are running the latest version of LibreLogin");
+                logger.info("You are running the latest version of TemsLogin");
             } else {
                 behind.sort(Comparator.comparing(Release::version));
-                logger.warn("!! YOU ARE RUNNING AN OUTDATED VERSION OF LIBRELOGIN !!");
+                logger.warn("!! YOU ARE RUNNING AN OUTDATED VERSION OF TEMSLOGIN !!");
                 logger.info("You are running version %s, the latest version is %s. You are running %s versions behind. Newer versions:".formatted(getVersion(), latest, behind.size()));
                 for (Release release : behind) {
                     logger.info("- %s".formatted(release.name()));
@@ -778,7 +827,13 @@ public abstract class AuthenticLibreLogin<P, S> implements LibreLoginPlugin<P, S
         }
     }
 
-    protected abstract void initMetrics(CustomChart... charts);
+    /**
+     * Telemetry is deliberately disabled in this fork: the upstream bStats project ids belong to LibreLogin
+     * and reporting there would be misleading. Override this if you register your own bStats project.
+     */
+    protected void initMetrics() {
+        // No-op by default.
+    }
 
     @Override
     public AuthenticAuthorizationProvider<P, S> getAuthorizationProvider() {

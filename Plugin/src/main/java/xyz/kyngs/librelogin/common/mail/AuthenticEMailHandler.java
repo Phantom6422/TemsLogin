@@ -12,6 +12,7 @@ import org.apache.commons.mail.HtmlEmail;
 import xyz.kyngs.librelogin.api.mail.EmailHandler;
 import xyz.kyngs.librelogin.common.AuthenticLibreLogin;
 import xyz.kyngs.librelogin.common.config.ConfigurationKeys;
+import xyz.kyngs.librelogin.common.util.GeneralUtil;
 
 public class AuthenticEMailHandler implements EmailHandler {
 
@@ -39,16 +40,17 @@ public class AuthenticEMailHandler implements EmailHandler {
 
             switch (port) {
                 case 465 -> {
-                    mail.setSslSmtpPort(String.valueOf(port));
-                    mail.setSSLOnConnect(false);
-                }
-                case 587 -> {
-                    mail.setStartTLSEnabled(true);
-                    mail.setStartTLSRequired(true);
+                    // Port 465 is implicit TLS. Disabling SSL here (as older versions did) sent the SMTP
+                    // credentials and password reset tokens over the network in plaintext.
+                    mail.setSSLOnConnect(true);
+                    mail.setSSLCheckServerIdentity(true);
                 }
                 default -> {
+                    // Everything else is expected to upgrade with STARTTLS. Requiring it prevents a
+                    // downgrade to plaintext if the server does not offer TLS.
+                    mail.setSSLOnConnect(false);
                     mail.setStartTLSEnabled(true);
-                    mail.setSSLOnConnect(true);
+                    mail.setStartTLSRequired(true);
                     mail.setSSLCheckServerIdentity(true);
                 }
             }
@@ -64,8 +66,8 @@ public class AuthenticEMailHandler implements EmailHandler {
 
     @Override
     public void sendTestMail(String email) {
-        sendEmail(email, "LibreLogin test mail", """
-                Congratulations! You have successfully configured email sending in LibreLogin!<br>
+        sendEmail(email, "TemsLogin test mail", """
+                Congratulations! You have successfully configured email sending in TemsLogin!<br>
                 Now, your users can reset their passwords.<br>
                 <i>If you have no idea what this means, block the sender.</i>
                 """);
@@ -73,26 +75,30 @@ public class AuthenticEMailHandler implements EmailHandler {
 
     @Override
     public void sendPasswordResetMail(String email, String token, String username, String ip) {
+        var server = GeneralUtil.escapeHtml(plugin.getConfiguration().get(ConfigurationKeys.MAIL_SENDER));
+
         sendEmail(email,
                 plugin.getMessages().getRawMessage("email-password-reset-subject")
-                        .replace("%server%", plugin.getConfiguration().get(ConfigurationKeys.MAIL_SENDER)),
+                        .replace("%server%", server),
                 plugin.getMessages().getRawMessage("email-password-reset-content")
-                        .replace("%server%", plugin.getConfiguration().get(ConfigurationKeys.MAIL_SENDER))
-                        .replace("%code%", token)
-                        .replace("%ip%", ip)
-                        .replace("%name%", username)
+                        .replace("%server%", server)
+                        .replace("%code%", GeneralUtil.escapeHtml(token))
+                        .replace("%ip%", GeneralUtil.escapeHtml(ip))
+                        .replace("%name%", GeneralUtil.escapeHtml(username))
         );
     }
 
     @Override
     public void sendVerificationMail(String email, String token, String username) {
+        var server = GeneralUtil.escapeHtml(plugin.getConfiguration().get(ConfigurationKeys.MAIL_SENDER));
+
         sendEmail(email,
                 plugin.getMessages().getRawMessage("email-verification-subject")
-                        .replace("%server%", plugin.getConfiguration().get(ConfigurationKeys.MAIL_SENDER)),
+                        .replace("%server%", server),
                 plugin.getMessages().getRawMessage("email-verification-content")
-                        .replace("%name%", username)
-                        .replace("%server%", plugin.getConfiguration().get(ConfigurationKeys.MAIL_SENDER))
-                        .replace("%code%", token)
+                        .replace("%name%", GeneralUtil.escapeHtml(username))
+                        .replace("%server%", server)
+                        .replace("%code%", GeneralUtil.escapeHtml(token))
         );
     }
 }

@@ -13,6 +13,7 @@ import co.aikar.commands.annotation.Syntax;
 import net.kyori.adventure.audience.Audience;
 import xyz.kyngs.librelogin.common.AuthenticLibreLogin;
 import xyz.kyngs.librelogin.common.command.InvalidCommandArgument;
+import xyz.kyngs.librelogin.common.util.GeneralUtil;
 
 import java.util.concurrent.CompletionStage;
 
@@ -34,7 +35,7 @@ public class VerifyEMailCommand<P> extends EMailCommand<P> {
             if (cached == null) {
                 throw new InvalidCommandArgument(getMessage("error-no-mail-confirm"));
             }
-            if (!cached.token().equals(token)) {
+            if (!GeneralUtil.constantTimeEquals(cached.token(), token)) {
                 throw new InvalidCommandArgument(getMessage("error-wrong-mail-verify"));
             }
             plugin.getAuthorizationProvider().getEmailConfirmCache().invalidate(user.getUuid());

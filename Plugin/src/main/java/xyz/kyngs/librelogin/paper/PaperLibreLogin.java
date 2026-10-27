@@ -13,9 +13,6 @@ import co.aikar.commands.CommandManager;
 import com.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import net.kyori.adventure.audience.Audience;
-import org.bstats.bukkit.Metrics;
-import org.bstats.charts.CustomChart;
-import org.bstats.charts.SimplePie;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -157,12 +154,15 @@ public class PaperLibreLogin extends AuthenticLibreLogin<Player, World> implemen
             return;
         }
 
+        Permissions.register();
+
         var provider = getEventProvider();
 
         provider.subscribe(provider.getTypes().authenticated, event -> {
             var player = event.getPlayer();
             if (player == null) return;
-            player.setInvisible(false);
+            // Unlike Paper, Spigot has no Player#setInvisible, so this must go through the compatibility helper.
+            PaperUtil.setInvisible(player, false);
         });
 
         listeners = new PaperListeners(this);
@@ -227,18 +227,6 @@ public class PaperLibreLogin extends AuthenticLibreLogin<Player, World> implemen
         return null;
     }
 
-    @Override
-    protected void initMetrics(CustomChart... charts) {
-        var metrics = new Metrics(bootstrap, 17915);
-
-        for (var chart : charts) {
-            metrics.addCustomChart(chart);
-        }
-
-        var isVelocity = new SimplePie("is_velocity", PaperUtil::getServerBrand);
-
-        metrics.addCustomChart(isVelocity);
-    }
 
     @Override
     protected void shutdownProxy(int code) {

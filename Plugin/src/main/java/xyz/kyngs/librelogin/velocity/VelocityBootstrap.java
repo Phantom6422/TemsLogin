@@ -30,10 +30,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Plugin(
-        id = "librelogin",
-        name = "LibreLogin",
+        id = "temslogin",
+        name = "TemsLogin",
         version = BuildParameters.VERSION,
-        authors = "kyngs",
+        authors = {"kyngs", "Tems"},
+        url = "https://phantomsnetwork.org",
         dependencies = {
                 @Dependency(id = "floodgate", optional = true),
                 @Dependency(id = "luckperms", optional = true),

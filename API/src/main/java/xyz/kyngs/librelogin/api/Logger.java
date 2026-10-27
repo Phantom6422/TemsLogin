@@ -7,7 +7,7 @@
 package xyz.kyngs.librelogin.api;
 
 /**
- * Logger class for LibreLogin.
+ * Logger class for TemsLogin (a fork of LibreLogin).
  *
  * @author kyngs
  */

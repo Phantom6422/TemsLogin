@@ -127,7 +127,7 @@ public class VelocityListeners extends AuthenticListeners<VelocityLibreLogin, Pl
                 }
             } catch (Exception e) {
                 plugin.getLogger().warn("Failed to check if player is coming from Floodgate.", e);
-                event.setResult(PreLoginEvent.PreLoginComponentResult.denied(Component.text("Internal LibreLogin error")));
+                event.setResult(PreLoginEvent.PreLoginComponentResult.denied(Component.text("Internal TemsLogin error")));
                 return;
             }
         }
@@ -173,7 +173,15 @@ public class VelocityListeners extends AuthenticListeners<VelocityLibreLogin, Pl
                 event.setResult(KickedFromServerEvent.DisconnectPlayer.create(message));
             } else {
                 try {
-                    var server = plugin.getServerHandler().chooseLobbyServer(plugin.getDatabaseProvider().getByUUID(player.getUniqueId()), player, false, true);
+                    var user = plugin.getDatabaseProvider().getByUUID(player.getUniqueId());
+
+                    if (user == null) {
+                        user = plugin.getDatabaseProvider().getByName(player.getUsername());
+                    }
+
+                    if (user == null) throw new NoSuchElementException();
+
+                    var server = plugin.getServerHandler().chooseLobbyServer(user, player, false, true);
 
                     if (server == null) throw new NoSuchElementException();
 

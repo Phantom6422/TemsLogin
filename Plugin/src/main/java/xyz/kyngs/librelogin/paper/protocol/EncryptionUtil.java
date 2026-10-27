@@ -20,7 +20,6 @@ import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.Random;
 import java.util.UUID;
@@ -150,7 +149,7 @@ public final class EncryptionUtil {
             throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException,
             BadPaddingException, InvalidKeyException {
         byte[] decryptedNonce = decrypt(decryptionKey, encryptedNonce);
-        return Arrays.equals(expected, decryptedNonce);
+        return MessageDigest.isEqual(expected, decryptedNonce);
     }
 
     public static boolean verifySignedNonce(byte[] nonce, PublicKey clientKey, long signatureSalt, byte[] signature)
@@ -167,6 +166,11 @@ public final class EncryptionUtil {
     private static PublicKey loadMojangSessionKey()
             throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         var keyUrl = PaperBootstrap.class.getClassLoader().getResource("yggdrasil_session_pubkey.der");
+
+        if (keyUrl == null) {
+            throw new IOException("Missing yggdrasil_session_pubkey.der in the plugin jar");
+        }
+
         var keyData = Resources.toByteArray(keyUrl);
         var keySpec = new X509EncodedKeySpec(keyData);
 
