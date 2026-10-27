@@ -72,7 +72,16 @@ public class Command<P> extends BaseCommand {
 
         if (plugin.fromFloodgate(uuid)) throw new InvalidCommandArgument(getMessage("error-from-floodgate"));
 
-        return plugin.getDatabaseProvider().getByUUID(uuid);
+        var user = plugin.getDatabaseProvider().getByUUID(uuid);
+
+        if (user == null) {
+            // On platforms that cannot spoof the player profile (Spigot/Bukkit) the server-side UUID may differ from the database one.
+            user = plugin.getDatabaseProvider().getByName(plugin.getPlatformHandle().getUsernameForPlayer(player));
+        }
+
+        if (user == null) throw new InvalidCommandArgument(getMessage("error-not-registered"));
+
+        return user;
     }
 
     protected void setPassword(Audience sender, User user, String password, String messageKey) {

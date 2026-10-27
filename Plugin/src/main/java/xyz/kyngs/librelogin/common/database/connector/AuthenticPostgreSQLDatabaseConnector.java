@@ -28,7 +28,7 @@ public class AuthenticPostgreSQLDatabaseConnector extends AuthenticDatabaseConne
 
         this.hikariConfig = new HikariConfig();
 
-        hikariConfig.setPoolName("LibreLogin PostgreSQL Pool");
+        hikariConfig.setPoolName("TemsLogin PostgreSQL Pool");
         hikariConfig.setDriverClassName("org.postgresql.Driver");
         hikariConfig.addDataSourceProperty("cachePrepStmts", "true");
         hikariConfig.addDataSourceProperty("prepStmtCacheSize", "250");

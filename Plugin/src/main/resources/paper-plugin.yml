@@ -1,0 +1,26 @@
+name: "TemsLogin"
+author: "kyngs, Tems"
+version: '${version}'
+main: "xyz.kyngs.librelogin.paper.PaperBootstrap"
+loader: "xyz.kyngs.librelogin.paper.PaperLoader"
+api-version: "1.19"
+
+dependencies:
+  bootstrap:
+    ViaVersion:
+      load: "BEFORE"
+      required: false
+      join-classpath: true
+  server:
+    Geyser-Spigot:
+      load: "BEFORE"
+      required: false
+    floodgate:
+      load: "BEFORE"
+      required: false
+    LuckPerms:
+      load: "BEFORE"
+      required: false
+    packetevents:
+      load: "BEFORE"
+      required: true

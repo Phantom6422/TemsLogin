@@ -30,13 +30,13 @@ jobs:
       - name: Upload Jar Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: LibreLogin
-          path: Plugin/build/libs/LibreLogin.jar
+          name: TemsLogin
+          path: Plugin/build/libs/TemsLogin-*.jar
 
       - name: Setup Velocity environment
         run: |
           mkdir -p velocity/plugins
-          cp Plugin/build/libs/LibreLogin.jar velocity/plugins/
+          cp Plugin/build/libs/TemsLogin-*.jar velocity/plugins/
           curl -sL https://fill-data.papermc.io/v1/objects/5d3f48df4b160077aaf159b154fef9fde0a198119b99285c26ce2df1a0357bd8/velocity-4.1.2-SNAPSHOT-28.jar -o velocity/velocity.jar
 
       - name: Run Velocity
@@ -53,8 +53,8 @@ jobs:
         run: |
           git clone https://github.com/kyngs/LibreLogin.wiki.git wiki
           cd wiki
-          echo '```hocon' > Config.md && cat ../velocity/plugins/librelogin/config.conf >> Config.md && echo '```' >> Config.md
-          echo '```hocon' > Messages.md && cat ../velocity/plugins/librelogin/messages.conf >> Messages.md && echo '```' >> Messages.md
+          echo '```hocon' > Config.md && cat ../velocity/plugins/temslogin/config.conf >> Config.md && echo '```' >> Config.md
+          echo '```hocon' > Messages.md && cat ../velocity/plugins/temslogin/messages.conf >> Messages.md && echo '```' >> Messages.md
           git config --local user.email 'kyngs@users.noreply.github.com'
           git config --local user.name 'Kyngs CI (GitHub Actions)'
           git add .

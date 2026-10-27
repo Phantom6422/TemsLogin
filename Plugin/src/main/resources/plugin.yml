@@ -1,0 +1,40 @@
+name: "TemsLogin"
+version: '${version}'
+main: "xyz.kyngs.librelogin.paper.PaperBootstrap"
+api-version: "1.19"
+authors: ["kyngs", "Tems"]
+description: "Authentication plugin for cracked and premium Minecraft servers, based on LibreLogin"
+website: "https://phantomsnetwork.org"
+
+permissions:
+  temslogin.admin:
+    description: "Grants every TemsLogin permission"
+    default: op
+    children:
+      temslogin.reload.configuration: true
+      temslogin.reload.messages: true
+      temslogin.dump: true
+      temslogin.email.test: true
+      temslogin.user.info: true
+      temslogin.user.migrate: true
+      temslogin.user.unregister: true
+      temslogin.user.delete: true
+      temslogin.user.premium: true
+      temslogin.user.cracked: true
+      temslogin.user.register: true
+      temslogin.user.login: true
+      temslogin.user.2faoff: true
+      temslogin.user.emailoff: true
+      temslogin.user.setemail: true
+      temslogin.user.pass-change: true
+      temslogin.user.alts: true
+  temslogin.limbo.access:
+    description: "Allows authorized players to enter a limbo world"
+    default: op
+depend:
+  - packetevents
+softdepend:
+  - ViaVersion
+  - Geyser-Spigot
+  - floodgate
+  - LuckPerms

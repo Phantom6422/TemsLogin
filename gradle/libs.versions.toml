@@ -25,6 +25,7 @@ postgresql = "org.postgresql:postgresql:42.7.5"
 
 # ACF
 acf-velocity = { module = "com.github.kyngs.commands:acf-velocity", version.ref = "acf" }
+acf-paper = { module = "com.github.kyngs.commands:acf-paper", version.ref = "acf" }
 
 # Utils
 caffeine = "com.github.ben-manes.caffeine:caffeine:3.2.0"
@@ -39,6 +40,7 @@ legacymessage = "com.github.kyngs:LegacyMessage:0.2.0"
 # Adventure
 adventure-minimessage = { module = "net.kyori:adventure-text-minimessage", version.ref = "adventure" }
 adventure-api = { module = "net.kyori:adventure-api", version.ref = "adventure" }
+adventure-serializer-legacy = { module = "net.kyori:adventure-text-serializer-legacy", version.ref = "adventure" }
 
 # Geyser / LuckPerms
 floodgate-api = "org.geysermc.floodgate:api:2.2.0-SNAPSHOT"
@@ -49,13 +51,20 @@ redisbungee = "com.github.ProxioDev.ValioBungee:RedisBungee-Bungee:0.12.5"
 
 # bStats
 bstats-velocity = { module = "org.bstats:bstats-velocity", version.ref = "bstats" }
+bstats-bukkit = { module = "org.bstats:bstats-bukkit", version.ref = "bstats" }
+
+# Paper / Bukkit
+paper-api = "io.papermc.paper:paper-api:26.3.build.+"
+packetevents-spigot = "com.github.retrooper:packetevents-spigot:2.14.0"
 
 # Core libraries
 netty-transport = "io.netty:netty-transport:4.1.108.Final"
+datafixerupper = "com.mojang:datafixerupper:5.0.28"
 log4j-core = "org.apache.logging.log4j:log4j-core:2.23.1"
 
 # Librarian
 librarian-velocity = { module = "xyz.kyngs.librarian:librarian-velocity", version.ref = "librarian" }
+librarian-paper = { module = "xyz.kyngs.librarian:librarian-paper", version.ref = "librarian" }
 
 # NanoLimboPlugin
 nanolimbo-api = "com.github.bivashy.NanoLimboPlugin:api:1.0.8"

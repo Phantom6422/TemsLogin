@@ -1,26 +1,21 @@
-# LibreLogin
+# TemsLogin
 
-(formerly LibrePremium) is an open-source, Velocity-focused, and highly customizable authentication plugin with outstanding features and API.
+TemsLogin is an authentication plugin for cracked and premium Minecraft servers with hybrid (mixed) logins,
+built for Velocity proxies and for Paper, Spigot and Bukkit servers.
 
-> **Note:** This plugin is originally forked from [kyngs/LibreLogin](https://github.com/kyngs/LibreLogin) by [kyngs](https://github.com/kyngs). This fork is only for [PhantomsNetwork](https://phantomsnetwork.org) internal use, so we do not provide support for others.
+> **Note:** This plugin is originally forked from [kyngs/LibreLogin](https://github.com/kyngs/LibreLogin) by
+> [kyngs](https://github.com/kyngs). This fork is only for [PhantomsNetwork](https://phantomsnetwork.org) internal
+> use, so we do not provide support for others.
 
-# Quick information
+> [!WARNING]
+> **This fork has been heavily modified with the help of AI.** Expect bugs and unintended behaviour, including
+> in authentication and data migration paths. Test every update on a staging server before using it in
+> production, and keep backups of your database and data folder.
 
-<img src="https://img.shields.io/badge/Java%20version-%2021+-blue?style=for-the-badge&logo=java&logoColor=white"
-alt="Plugin requires Java 21 or newer"></img>
+## Quick information
 
-<a href="https://discord.gg/HP3CSfCv2v">
-<img src="https://img.shields.io/badge/Discord-%20SUPPORT-blue?style=for-the-badge&logo=discord&logoColor=white" 
-alt="Support available on Discord"></img>
-</a>
-<a href="https://github.com/kyngs/LibreLogin/wiki">
-<img src="https://img.shields.io/badge/Documentation-555555?style=for-the-badge&logo=wikipedia" alt="Documentation on the Wiki"></img>
-</a>
-
-<a href="https://github.com/Phantom6422/LibreLogin/graphs/contributors">
-<img src="https://img.shields.io/badge/Contributors-Credits-blue?style=for-the-badge" 
-alt="Contributors listed"></img>
-</a>
+<img src="https://img.shields.io/badge/Java%20version-%2025+-blue?style=for-the-badge&logo=java&logoColor=white"
+alt="Plugin requires Java 25 or newer"></img>
 
 ## Basic set of features
 
@@ -34,40 +29,70 @@ alt="Contributors listed"></img>
 
 ## Considerations
 
-- When using on proxy, you need to secure your limbo
+- When using on a proxy, you need to secure your limbo
+- Bukkit, Spigot and Paper servers require [PacketEvents](https://modrinth.com/plugin/packetevents) 2.14.0 or newer
 
 ## Platforms
 
 - [x] Velocity (3.x & 4.x, including 4.3.0)
-- [ ] Paper *(Dropped in 0.25+ - Velocity only)*
+- [x] Paper (1.20.5+ / 26.x, tested up to 26.3)
+- [x] Spigot / Bukkit (1.20.5+ / 26.x, tested up to 26.3)
 - [ ] BungeeCord *(Dropped in 0.25+ due to Adventure 5 migration)*
+
+## Commands and permissions
+
+The main administrative command is `/temslogin` (`/librelogin` is kept as an alias). Every administrative
+permission now lives under `temslogin.*`, for example `temslogin.user.info` or `temslogin.reload.configuration`.
+`temslogin.admin` grants all of them.
+
+Permissions used by older versions (`librelogin.*` and `librepremium.*`) are no longer checked, so update your
+LuckPerms groups after upgrading, for example:
+
+```bash
+/lp group admin permission set temslogin.admin true
+```
+
+## Migrating from LibreLogin
+
+Migration is automatic on the first start:
+
+- If `plugins/temslogin` does not exist, the old folder (`plugins/librelogin`, `plugins/librepremium`,
+  `plugins/LibreLogin` or `plugins/LibrePremium`) is renamed, which moves configuration, messages and the
+  SQLite database in one go.
+- If `plugins/temslogin` already exists, missing files are copied from the legacy folder instead:
+  `config.conf`, `messages.conf`, `forbidden-passwords.txt` and any SQLite `*.db` files. Existing files are
+  never overwritten, so your current TemsLogin configuration always wins.
+- The configuration and messages revision numbers are upgraded by the built-in migrators on load, exactly as
+  a normal plugin update would.
+- The database schema and table name (`librepremium_data`) are intentionally unchanged, so an existing database
+  keeps working. MySQL/PostgreSQL users just keep pointing at the same database in the imported `config.conf`.
+- If you publish this plugin yourself, remove the upstream bStats ids first. Telemetry is disabled in this fork.
 
 ## Building from Source
 
-To build the plugin jar:
-
 ```bash
-# Requires Java 21 or newer
+# Requires Java 25 or newer
 ./gradlew shadowJar
 ```
 
-The compiled jar will be available in `Plugin/build/libs/LibreLogin.jar`.
+The compiled jar will be available in `Plugin/build/libs/TemsLogin-<version>.jar`, for example
+`TemsLogin-0.27.0-SNAPSHOT.jar`.
 
-## References
+## Special thanks
 
-- check out [reviews](https://www.spigotmc.org/resources/librelogin-authorization-plugin-automatic-login-2fa.101040/reviews) on spigotmc.org  
-
-# Special thanks
-
+- [kyngs](https://github.com/kyngs) - author of [LibreLogin](https://github.com/kyngs/LibreLogin), which this plugin is based on
 - [Raixo](https://github.com/RAIXOCZ) - for developing the original bungeecord port
 - [FastLogin contributors](https://github.com/games647/FastLogin) - for their work, which was used as a base for the
   paper port
 - [Fejby](https://github.com/Fejby) - for providing Floodgate test server and helping with testing
 
-# License
+## License
 
-LibreLogin is [FOSS](https://en.wikipedia.org/wiki/Free_and_open-source_software), licensed under the Mozilla Public License 2.0.
+TemsLogin is a derivative work of LibreLogin and is licensed under the Mozilla Public License 2.0.
+The original copyright notices and license headers are kept in every source file.
 
-[Read the license here.](https://github.com/kyngs/LibreLogin/blob/master/LICENSE)
+- [License text](LICENSE)
+- Upstream project: [kyngs/LibreLogin](https://github.com/kyngs/LibreLogin)
 
-The plugin **is and always will be** completely open-source, so you don't need to worry about malicious copies.
+Modifications made by this fork are also available under the MPL-2.0. If you distribute a modified version,
+you must keep the license and make the source of the modified files available, as required by the MPL-2.0.

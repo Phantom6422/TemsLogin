@@ -28,7 +28,7 @@ public class AuthenticMySQLDatabaseConnector extends AuthenticDatabaseConnector<
 
         this.hikariConfig = new HikariConfig();
 
-        hikariConfig.setPoolName("LibreLogin MySQL Pool");
+        hikariConfig.setPoolName("TemsLogin MySQL Pool");
         hikariConfig.setDriverClassName("xyz.kyngs.librelogin.lib.mariadb.jdbc.Driver");
         hikariConfig.addDataSourceProperty("cachePrepStmts", "true");
         hikariConfig.addDataSourceProperty("prepStmtCacheSize", "250");

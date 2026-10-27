@@ -6,6 +6,7 @@
 
 package xyz.kyngs.librelogin.common.listener;
 
+import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.Nullable;
 import xyz.kyngs.librelogin.api.BiHolder;
 import xyz.kyngs.librelogin.api.PlatformHandle;
@@ -43,6 +44,21 @@ public class AuthenticListeners<Plugin extends AuthenticLibreLogin<P, S>, P, S> 
         if (user == null) {
             user = plugin.getDatabaseProvider().getByUUID(uuid);
         }
+
+        if (user == null) {
+            // Platforms that cannot spoof the player profile (Spigot/Bukkit) may hand us a UUID that differs
+            // from the one stored in the database, so retry with the username before giving up.
+            user = plugin.getDatabaseProvider().getByName(platformHandle.getUsernameForPlayer(player));
+        }
+
+        if (user == null) {
+            // Can happen if the database entry disappeared while the player was connecting. Refusing the login
+            // is safer than dereferencing null, and avoids leaving a half-authenticated player online.
+            plugin.getLogger().warn("No database entry found for %s during post login, kicking the player".formatted(platformHandle.getUsernameForPlayer(player)));
+            platformHandle.kick(player, Component.text("Internal error, please try again later."));
+            return;
+        }
+
         var sessionTime = Duration.ofSeconds(plugin.getConfiguration().get(ConfigurationKeys.SESSION_TIMEOUT));
 
         if (user.autoLoginEnabled()) {
@@ -280,6 +296,16 @@ public class AuthenticListeners<Plugin extends AuthenticLibreLogin<P, S>, P, S> 
             user = null;
         } else if (user == null) {
             user = plugin.getDatabaseProvider().getByUUID(id);
+
+            if (user == null) {
+                // See onPostLogin: the platform UUID may not match the stored one on Spigot/Bukkit.
+                user = plugin.getDatabaseProvider().getByName(platformHandle.getUsernameForPlayer(player));
+            }
+
+            if (user == null) {
+                // Nothing sensible to route this player to, let the caller handle the missing server.
+                return new BiHolder<>(false, null);
+            }
         }
 
         if (ip == null) {

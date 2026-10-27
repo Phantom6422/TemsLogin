@@ -7,6 +7,6 @@ pluginManagement {
     }
 }
 
-rootProject.name = "LibreLogin"
+rootProject.name = "TemsLogin"
 include("Plugin")
 include("API")

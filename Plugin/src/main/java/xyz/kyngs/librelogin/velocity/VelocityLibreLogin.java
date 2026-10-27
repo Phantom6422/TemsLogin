@@ -19,8 +19,6 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
-import org.bstats.charts.CustomChart;
-import org.bstats.velocity.Metrics;
 import org.jetbrains.annotations.Nullable;
 import xyz.kyngs.librelogin.api.Logger;
 import xyz.kyngs.librelogin.api.PlatformHandle;
@@ -53,8 +51,6 @@ public class VelocityLibreLogin extends AuthenticLibreLogin<Player, RegisteredSe
     private Path dataDir;
     @Inject
     private ProxyServer server;
-    @Inject
-    private Metrics.Factory factory;
     @Inject
     private PluginDescription description;
     @Nullable
@@ -186,7 +182,7 @@ public class VelocityLibreLogin extends AuthenticLibreLogin<Player, RegisteredSe
             redisBungee = new VelocityRedisBungeeIntegration();
         }
         super.enable();
-        getLogger().info("LibreLogin version " + getVersion() + " enabled!");
+        getLogger().info("TemsLogin version " + getVersion() + " enabled!");
     }
 
     @Override
@@ -209,14 +205,6 @@ public class VelocityLibreLogin extends AuthenticLibreLogin<Player, RegisteredSe
         return server.getPlayer(uuid).orElse(null);
     }
 
-    @Override
-    protected void initMetrics(CustomChart... charts) {
-        var metrics = factory.make(bootstrap, 17981);
-
-        for (CustomChart chart : charts) {
-            metrics.addCustomChart(chart);
-        }
-    }
 
     @Override
     public Audience getAudienceFromIssuer(CommandIssuer issuer) {

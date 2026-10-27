@@ -11,6 +11,7 @@ import net.kyori.adventure.audience.Audience;
 import xyz.kyngs.librelogin.common.AuthenticLibreLogin;
 import xyz.kyngs.librelogin.common.command.InvalidCommandArgument;
 import xyz.kyngs.librelogin.common.event.events.AuthenticPasswordChangeEvent;
+import xyz.kyngs.librelogin.common.util.GeneralUtil;
 
 import java.util.concurrent.CompletionStage;
 
@@ -31,7 +32,7 @@ public class ConfirmPasswordReset<P> extends EMailCommand<P> {
             if (cached == null) {
                 throw new InvalidCommandArgument(getMessage("error-no-password-reset"));
             }
-            if (!cached.equals(token)) {
+            if (!GeneralUtil.constantTimeEquals(cached, token)) {
                 throw new InvalidCommandArgument(getMessage("error-wrong-password-reset"));
             }
             if (!password.equals(passwordRepeat)) {

@@ -62,12 +62,19 @@ public class LoginCommand<P> extends AuthorizationCommand<P> {
                         throw new InvalidCommandArgument(getMessage("totp-wrong"));
                     }
 
+                    if (!getAuthorizationProvider().tryTwoFactorAttempt(user.getUuid())) {
+                        plugin.getLogger().warn("Player %s exceeded the 2FA attempt limit, refusing to verify any more codes for a while".formatted(user.getLastNickname()));
+                        throw new InvalidCommandArgument(getMessage("totp-wrong"));
+                    }
+
                     if (!totp.verify(parsedCode, secret)) {
                         plugin.getEventProvider()
                                 .unsafeFire(plugin.getEventTypes().wrongPassword,
                                         new AuthenticWrongPasswordEvent<>(user, player, plugin, AuthenticationSource.TOTP));
                         throw new InvalidCommandArgument(getMessage("totp-wrong"));
                     }
+
+                    getAuthorizationProvider().resetTwoFactorAttempts(user.getUuid());
                 }
             }
 

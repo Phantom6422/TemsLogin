@@ -19,6 +19,7 @@ import xyz.kyngs.librelogin.common.AuthenticHandler;
 import xyz.kyngs.librelogin.common.AuthenticLibreLogin;
 import xyz.kyngs.librelogin.common.config.ConfigurationKeys;
 import xyz.kyngs.librelogin.common.event.events.AuthenticAuthenticatedEvent;
+import xyz.kyngs.librelogin.common.util.AttemptLimiter;
 
 import java.sql.Timestamp;
 import java.time.Duration;
@@ -35,6 +36,11 @@ public class AuthenticAuthorizationProvider<P, S> extends AuthenticHandler<P, S>
     private final Map<P, String> awaiting2FA;
     private final Cache<UUID, EmailVerifyData> emailConfirmCache;
     private final Cache<UUID, String> passwordResetCache;
+    /**
+     * Limits how many 2FA codes can be submitted per player. Without this, an attacker who already knows
+     * the password could brute-force the (6 digit) second factor.
+     */
+    private final AttemptLimiter<UUID> twoFactorLimiter = new AttemptLimiter<>(5, 5, TimeUnit.MINUTES);
 
     public AuthenticAuthorizationProvider(AuthenticLibreLogin<P, S> plugin) {
         super(plugin);
@@ -105,12 +111,34 @@ public class AuthenticAuthorizationProvider<P, S> extends AuthenticHandler<P, S>
     @Override
     public boolean confirmTwoFactorAuth(P player, Integer code, User user) {
         var secret = awaiting2FA.get(player);
+
+        if (secret == null) {
+            return false;
+        }
+
+        if (!tryTwoFactorAttempt(user.getUuid())) {
+            plugin.getLogger().warn("Player %s exceeded the 2FA attempt limit, refusing to verify any more codes for a while".formatted(user.getLastNickname()));
+            return false;
+        }
+
         if (plugin.getTOTPProvider().verify(code, secret)) {
+            twoFactorLimiter.reset(user.getUuid());
             user.setSecret(secret);
             plugin.getDatabaseProvider().updateUser(user);
             return true;
         }
         return false;
+    }
+
+    /**
+     * @return whether the player is still allowed to submit a 2FA code
+     */
+    public boolean tryTwoFactorAttempt(UUID uuid) {
+        return twoFactorLimiter.tryAcquire(uuid);
+    }
+
+    public void resetTwoFactorAttempts(UUID uuid) {
+        twoFactorLimiter.reset(uuid);
     }
 
     public void startTracking(User user, P player) {

@@ -26,7 +26,7 @@ import xyz.kyngs.librelogin.common.command.commands.mail.VerifyEMailCommand;
 import xyz.kyngs.librelogin.common.command.commands.premium.PremiumConfirmCommand;
 import xyz.kyngs.librelogin.common.command.commands.premium.PremiumDisableCommand;
 import xyz.kyngs.librelogin.common.command.commands.premium.PremiumEnableCommand;
-import xyz.kyngs.librelogin.common.command.commands.staff.LibreLoginCommand;
+import xyz.kyngs.librelogin.common.command.commands.staff.TemsLoginCommand;
 import xyz.kyngs.librelogin.common.command.commands.tfa.TwoFactorAuthCommand;
 import xyz.kyngs.librelogin.common.command.commands.tfa.TwoFactorConfirmCommand;
 import xyz.kyngs.librelogin.common.util.RateLimiter;
@@ -105,7 +105,7 @@ public class CommandProvider<P, S> extends AuthenticHandler<P, S> {
         manager.registerCommand(new PremiumConfirmCommand<>(plugin));
         manager.registerCommand(new PremiumDisableCommand<>(plugin));
         manager.registerCommand(new ChangePasswordCommand<>(plugin));
-        manager.registerCommand(new LibreLoginCommand<>(plugin));
+        manager.registerCommand(new TemsLoginCommand<>(plugin));
 
         if (plugin.getTOTPProvider() != null) {
             manager.registerCommand(new TwoFactorAuthCommand<>(plugin));
@@ -131,7 +131,7 @@ public class CommandProvider<P, S> extends AuthenticHandler<P, S> {
 
         audience.sendMessage(plugin.getMessages().getMessage("info-enabling"));
 
-        LibreLoginCommand.enablePremium(player, user, plugin, true);
+        TemsLoginCommand.enablePremium(player, user, plugin, true);
 
         plugin.getDatabaseProvider().updateUser(user);
 

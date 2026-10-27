@@ -554,14 +554,14 @@ public class MessageKeys {
     public static final ConfigurationKey<String> INFO_DUMPING = new ConfigurationKey<>(
             "info-dumping",
             "Creating dump...",
-            "This message is displayed when a user executes /librelogin dump.",
+            "This message is displayed when a user executes /temslogin dump.",
             ConfigurateHelper::getString
     );
 
     public static final ConfigurationKey<String> INFO_DUMPED = new ConfigurationKey<>(
             "info-dumped",
             "Dump saved to %file%!",
-            "This message is displayed when a user executes /librelogin dump.",
+            "This message is displayed when a user executes /temslogin dump.",
             ConfigurateHelper::getString
     );
 
@@ -625,13 +625,14 @@ public class MessageKeys {
     public static final ConfigurationKey<String> INFO_ABOUT = new ConfigurationKey<>(
             "info-about",
             """
-                    This server is running FOSS authentication plugin, LibreLogin.
+                    This server is running the FOSS authentication plugin TemsLogin.
                     Version: %version%
                     Authors: kyngs, and other contributors
-                    Source: https://github.com/kyngs/LibreLogin
+                    Source: https://github.com/Phantom6422/TemsLogin
+                    Based on LibreLogin: https://github.com/kyngs/LibreLogin
                     License: Mozilla Public License 2.0""",
             """
-                    This message is displayed when the player executes /librelogin about.
+                    This message is displayed when the player executes /temslogin about.
                     !! Clearing this message, or somehow making the command unexecutable is not only cringe, but also considered a violation of the license. !!""",
             ConfigurateHelper::getString
     );
@@ -1042,91 +1043,91 @@ public class MessageKeys {
     public static final ConfigurationKey<String> AUTOCOMPLETE_USER_INFO = new ConfigurationKey<>(
             "autocomplete.user-info",
             "@players",
-            "This hint is displayed when the player starts typing the /librelogin user info command.",
+            "This hint is displayed when the player starts typing the /temslogin user info command.",
             ConfigurateHelper::getString
     );
 
     public static final ConfigurationKey<String> AUTOCOMPLETE_USER_MIGRATE = new ConfigurationKey<>(
             "autocomplete.user-migrate",
             "@players newName",
-            "This hint is displayed when the player starts typing the /librelogin user migrate command.",
+            "This hint is displayed when the player starts typing the /temslogin user migrate command.",
             ConfigurateHelper::getString
     );
 
     public static final ConfigurationKey<String> AUTOCOMPLETE_USER_UNREGISTER = new ConfigurationKey<>(
             "autocomplete.user-unregister",
             "@players",
-            "This hint is displayed when the player starts typing the /librelogin user unregister command.",
+            "This hint is displayed when the player starts typing the /temslogin user unregister command.",
             ConfigurateHelper::getString
     );
 
     public static final ConfigurationKey<String> AUTOCOMPLETE_USER_DELETE = new ConfigurationKey<>(
             "autocomplete.user-delete",
             "@players",
-            "This hint is displayed when the player starts typing the /librelogin user delete command.",
+            "This hint is displayed when the player starts typing the /temslogin user delete command.",
             ConfigurateHelper::getString
     );
 
     public static final ConfigurationKey<String> AUTOCOMPLETE_USER_PREMIUM = new ConfigurationKey<>(
             "autocomplete.user-premium",
             "@players",
-            "This hint is displayed when the player starts typing the /librelogin user premium command.",
+            "This hint is displayed when the player starts typing the /temslogin user premium command.",
             ConfigurateHelper::getString
     );
 
     public static final ConfigurationKey<String> AUTOCOMPLETE_USER_CRACKED = new ConfigurationKey<>(
             "autocomplete.user-cracked",
             "@players",
-            "This hint is displayed when the player starts typing the /librelogin user cracked command.",
+            "This hint is displayed when the player starts typing the /temslogin user cracked command.",
             ConfigurateHelper::getString
     );
 
     public static final ConfigurationKey<String> AUTOCOMPLETE_USER_REGISTER = new ConfigurationKey<>(
             "autocomplete.user-register",
             "@players password",
-            "This hint is displayed when the player starts typing the /librelogin user register command.",
+            "This hint is displayed when the player starts typing the /temslogin user register command.",
             ConfigurateHelper::getString
     );
 
     public static final ConfigurationKey<String> AUTOCOMPLETE_USER_LOGIN = new ConfigurationKey<>(
             "autocomplete.user-login",
             "@players",
-            "This hint is displayed when the player starts typing the /librelogin user login command.",
+            "This hint is displayed when the player starts typing the /temslogin user login command.",
             ConfigurateHelper::getString
     );
 
     public static final ConfigurationKey<String> AUTOCOMPLETE_USER_2FA_OFF = new ConfigurationKey<>(
             "autocomplete.user-2fa-off",
             "@players",
-            "This hint is displayed when the player starts typing the /librelogin user 2fa-off command.",
+            "This hint is displayed when the player starts typing the /temslogin user 2fa-off command.",
             ConfigurateHelper::getString
     );
 
     public static final ConfigurationKey<String> AUTOCOMPLETE_USER_EMAIL_OFF = new ConfigurationKey<>(
             "autocomplete.user-email-off",
             "@players",
-            "This hint is displayed when the player starts typing the /librelogin user emailoff command.",
+            "This hint is displayed when the player starts typing the /temslogin user emailoff command.",
             ConfigurateHelper::getString
     );
 
     public static final ConfigurationKey<String> AUTOCOMPLETE_USER_SET_EMAIL = new ConfigurationKey<>(
             "autocomplete.user-set-email",
             "@players email",
-            "This hint is displayed when the player starts typing the /librelogin user setemail command.",
+            "This hint is displayed when the player starts typing the /temslogin user setemail command.",
             ConfigurateHelper::getString
     );
 
     public static final ConfigurationKey<String> AUTOCOMPLETE_USER_ALTS = new ConfigurationKey<>(
             "autocomplete.user-alts",
             "@players",
-            "This hint is displayed when the player starts typing the /librelogin user alts command.",
+            "This hint is displayed when the player starts typing the /temslogin user alts command.",
             ConfigurateHelper::getString
     );
 
     public static final ConfigurationKey<String> AUTOCOMPLETE_USER_CHANGE_PASSWORD = new ConfigurationKey<>(
             "autocomplete.user-pass-change",
             "@players newPassword",
-            "This hint is displayed when the player starts typing the /librelogin user pass-change command.",
+            "This hint is displayed when the player starts typing the /temslogin user pass-change command.",
             ConfigurateHelper::getString
     );
 
@@ -1147,7 +1148,7 @@ public class MessageKeys {
     public static final ConfigurationKey<String> AUTOCOMPLETE_EMAIL_TEST = new ConfigurationKey<>(
             "autocomplete.email-test",
             "address",
-            "This hint is displayed when the player starts typing the /librelogin email test command.",
+            "This hint is displayed when the player starts typing the /temslogin email test command.",
             ConfigurateHelper::getString
     );
 

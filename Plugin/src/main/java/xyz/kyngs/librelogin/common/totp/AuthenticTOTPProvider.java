@@ -71,6 +71,12 @@ public class AuthenticTOTPProvider implements TOTPProvider {
 
     @Override
     public boolean verify(Integer code, String secret) {
-        return verifier.isValidCode(secret, code.toString());
+        if (code == null || secret == null) {
+            return false;
+        }
+
+        // TOTP codes are zero-padded. Formatting the parsed integer would drop leading zeros (e.g. 012345
+        // becoming 12345), which would make those codes impossible to use.
+        return verifier.isValidCode(secret, String.format("%06d", code));
     }
 }

@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,11 +38,43 @@ import static xyz.kyngs.librelogin.common.config.ConfigurationKeys.MIGRATION_TYP
 public class GeneralUtil {
 
     public static final ForkJoinPool ASYNC_POOL = new ForkJoinPool(4);
+    private static final SecureRandom RANDOM = new SecureRandom();
 
     public static String readInput(InputStream inputStream) throws IOException {
-        var input = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-        inputStream.close();
-        return input;
+        if (inputStream == null) {
+            // HttpURLConnection returns null error streams for some responses, e.g. when the connection failed.
+            return "";
+        }
+
+        try (inputStream) {
+            return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+        }
+    }
+
+    /**
+     * Compares two strings in constant time, so secret/token comparison does not leak information through timing.
+     */
+    public static boolean constantTimeEquals(String a, String b) {
+        if (a == null || b == null) {
+            return a == b;
+        }
+
+        return MessageDigest.isEqual(a.getBytes(StandardCharsets.UTF_8), b.getBytes(StandardCharsets.UTF_8));
+    }
+
+    /**
+     * Escapes user-controlled values before they are embedded in HTML emails.
+     */
+    public static String escapeHtml(String input) {
+        if (input == null) {
+            return "";
+        }
+
+        return input.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
     }
 
     public static Throwable getFurthestCause(Throwable throwable) {
@@ -114,7 +147,7 @@ public class GeneralUtil {
 
                 } catch (Exception e) {
                     var cause = GeneralUtil.getFurthestCause(e);
-                    logger.error("!! THIS IS NOT AN ERROR CAUSED BY LIBRELOGIN !!");
+                    logger.error("!! THIS IS NOT AN ERROR CAUSED BY TEMSLOGIN !!");
                     logger.error("Failed to connect to the OLD database, this most likely is caused by wrong credentials. Cause: %s: %s".formatted(cause.getClass().getSimpleName(), cause.getMessage()));
                     logger.error("Aborting migration");
 
@@ -174,9 +207,8 @@ public class GeneralUtil {
     public static String generateAlphanumericText(int limit) {
         var leftLimit = 48; // numeral '0'
         var rightLimit = 122; // letter 'z'
-        var random = new SecureRandom();
 
-        return random.ints(leftLimit, rightLimit + 1)
+        return RANDOM.ints(leftLimit, rightLimit + 1)
                 .filter(i -> (i <= 57 || i >= 65) && (i <= 90 || i >= 97))
                 .limit(limit)
                 .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)

@@ -44,6 +44,7 @@ dependencies {
 
     // ACF
     librarian(libs.acf.velocity)
+    librarian(libs.acf.paper)
 
     // Utils
     librarian(libs.caffeine)
@@ -54,6 +55,7 @@ dependencies {
     librarian(libs.bouncycastle)
     librarian(libs.commons.email)
     librarian(libs.adventure.minimessage)
+    librarian(libs.adventure.serializer.legacy)
     librarian(libs.legacymessage)
 
     // Geyser
@@ -64,18 +66,37 @@ dependencies {
     // RedisBungee
     compileOnly(libs.redisbungee)
 
-    // bStats
-    librarian(libs.bstats.velocity)
-
+    // Paper / Bukkit / Spigot
+    compileOnly(libs.paper.api)
     compileOnly(libs.adventure.api)
+    compileOnly(libs.packetevents.spigot)
     compileOnly(libs.netty.transport)
+    compileOnly(libs.datafixerupper)
     compileOnly(libs.log4j.core)
 
     // Librarian
     implementation(libs.librarian.velocity)
+    implementation(libs.librarian.paper)
 
     // NanoLimboPlugin
     compileOnly(libs.nanolimbo.api)
+
+    // Tests
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.caffeine)
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+tasks.test {
+    useJUnitPlatform()
+}
+
+tasks.withType<ProcessResources> {
+    outputs.upToDateWhen { false }
+    filesMatching(listOf("plugin.yml", "paper-plugin.yml")) {
+        expand(mapOf("version" to version))
+    }
 }
 
 sourceSets {
@@ -97,7 +118,8 @@ val excludedLibs = listOf(
 )
 
 tasks.withType<ShadowJar> {
-    archiveFileName.set("LibreLogin.jar")
+    // Include the version in the file name so builds can be told apart at a glance.
+    archiveFileName.set("TemsLogin-${project.version}.jar")
 
     dependencies {
         excludedLibs.forEach { exclude(dependency(it)) }
@@ -138,14 +160,10 @@ mcupload {
                 }
             }
         } else if (System.getProperty("buildTarget") == "release") {
-            modrinth {
-                loaders = listOf("velocity")
-                projectId = "tL0SCXYq"
-                token = System.getenv("MODRINTH_TOKEN")
-            }
+            // Modrinth publishing is intentionally not configured: this fork must not publish to the upstream project.
             github {
                 token = System.getenv("GITHUB_TOKEN")
-                repository = "kyngs/LibreLogin"
+                repository = "Phantom6422/TemsLogin"
             }
             discord {
                 webhookUrl = System.getenv("DISCORD_WEBHOOK_URL")
