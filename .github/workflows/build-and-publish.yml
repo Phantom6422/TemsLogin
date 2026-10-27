@@ -30,7 +30,7 @@ jobs:
       - name: Upload Jar Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: LibreLogin
+          name: TemsLogin
           path: Plugin/build/libs/TemsLogin-*.jar
 
       - name: Setup Velocity environment
