@@ -7,6 +7,11 @@ built for Velocity proxies and for Paper, Spigot and Bukkit servers.
 > [kyngs](https://github.com/kyngs). This fork is only for [PhantomsNetwork](https://phantomsnetwork.org) internal
 > use, so we do not provide support for others.
 
+> [!WARNING]
+> **This fork has been heavily modified with the help of AI.** Expect bugs and unintended behaviour, including
+> in authentication and data migration paths. Test every update on a staging server before using it in
+> production, and keep backups of your database and data folder.
+
 ## Quick information
 
 <img src="https://img.shields.io/badge/Java%20version-%2025+-blue?style=for-the-badge&logo=java&logoColor=white"
