@@ -17,6 +17,20 @@ built for Velocity proxies and for Paper, Spigot and Bukkit servers.
 <img src="https://img.shields.io/badge/Java%20version-%2025+-blue?style=for-the-badge&logo=java&logoColor=white"
 alt="Plugin requires Java 25 or newer"></img>
 
+## Documentation
+
+TemsLogin is a fork of LibreLogin, so the **[LibreLogin wiki](https://github.com/kyngs/LibreLogin/wiki)** is the
+documentation for this plugin. Configuration keys, messages and behaviour are the same, with these differences:
+
+- the command is `/temslogin` (`/librelogin` still works as an alias),
+- permissions are under `temslogin.*` instead of `librelogin.*` / `librepremium.*`,
+- the data folder is `plugins/temslogin` (`plugins/TemsLogin` on Paper/Spigot).
+
+<a href="https://github.com/kyngs/LibreLogin/wiki">
+<img src="https://img.shields.io/badge/Documentation-LibreLogin%20Wiki-555555?style=for-the-badge&logo=wikipedia"
+alt="Documentation on the upstream LibreLogin wiki"></img>
+</a>
+
 ## Basic set of features
 
 - AutoLogin for premium players
