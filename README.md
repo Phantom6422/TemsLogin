@@ -49,9 +49,18 @@ LuckPerms groups after upgrading, for example:
 
 ## Migrating from LibreLogin
 
-- Configuration files are migrated automatically from `plugins/librelogin`, `plugins/LibrePremium` or
-  `plugins/LibreLogin` to the new data folder.
-- The database schema and table name are intentionally unchanged, so an existing database keeps working.
+Migration is automatic on the first start:
+
+- If `plugins/temslogin` does not exist, the old folder (`plugins/librelogin`, `plugins/librepremium`,
+  `plugins/LibreLogin` or `plugins/LibrePremium`) is renamed, which moves configuration, messages and the
+  SQLite database in one go.
+- If `plugins/temslogin` already exists, missing files are copied from the legacy folder instead:
+  `config.conf`, `messages.conf`, `forbidden-passwords.txt` and any SQLite `*.db` files. Existing files are
+  never overwritten, so your current TemsLogin configuration always wins.
+- The configuration and messages revision numbers are upgraded by the built-in migrators on load, exactly as
+  a normal plugin update would.
+- The database schema and table name (`librepremium_data`) are intentionally unchanged, so an existing database
+  keeps working. MySQL/PostgreSQL users just keep pointing at the same database in the imported `config.conf`.
 - If you publish this plugin yourself, remove the upstream bStats ids first. Telemetry is disabled in this fork.
 
 ## Building from Source
@@ -61,7 +70,8 @@ LuckPerms groups after upgrading, for example:
 ./gradlew shadowJar
 ```
 
-The compiled jar will be available in `Plugin/build/libs/TemsLogin.jar`.
+The compiled jar will be available in `Plugin/build/libs/TemsLogin-<version>.jar`, for example
+`TemsLogin-0.27.0-SNAPSHOT.jar`.
 
 ## Special thanks
 

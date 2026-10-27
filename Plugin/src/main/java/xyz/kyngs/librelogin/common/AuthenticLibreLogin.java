@@ -243,9 +243,8 @@ public abstract class AuthenticLibreLogin<P, S> implements LibreLoginPlugin<P, S
 
         var folder = getDataFolder();
 
-        if (!folder.exists()) {
-            migrateLegacyDataFolder(folder);
-        }
+        // Import configuration, messages and databases from a LibreLogin installation before anything is loaded.
+        LegacyDataMigrator.migrate(folder.getParentFile(), folder, logger);
 
         try (var license = getResourceAsStream("LICENSE.txt")) {
             if (license != null) {
@@ -343,28 +342,6 @@ public abstract class AuthenticLibreLogin<P, S> implements LibreLoginPlugin<P, S
         }
     }
 
-    /**
-     * Renames a data folder left behind by an older plugin name (or by upstream LibreLogin) to the current one,
-     * so that existing configurations, messages and databases keep working after the rebrand.
-     */
-    private void migrateLegacyDataFolder(File folder) {
-        for (String legacyName : List.of("librelogin", "librepremium", "LibreLogin", "LibrePremium")) {
-            var oldFolder = new File(folder.getParentFile(), legacyName);
-
-            if (oldFolder.equals(folder) || !oldFolder.isDirectory()) {
-                continue;
-            }
-
-            logger.info("Migrating configuration and messages from the legacy folder '%s'...".formatted(legacyName));
-
-            if (oldFolder.renameTo(folder)) {
-                return;
-            }
-
-            logger.error("Failed to migrate the legacy folder '%s', please move its contents to '%s' manually".formatted(legacyName, folder.getName()));
-            return;
-        }
-    }
 
     public <C extends DatabaseConnector<?, ?>> DatabaseConnectorRegistration<?, C> getDatabaseConnector(Class<C> clazz) {
         return (DatabaseConnectorRegistration<?, C>) databaseConnectors.get(clazz);

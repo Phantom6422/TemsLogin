@@ -118,7 +118,8 @@ val excludedLibs = listOf(
 )
 
 tasks.withType<ShadowJar> {
-    archiveFileName.set("TemsLogin.jar")
+    // Include the version in the file name so builds can be told apart at a glance.
+    archiveFileName.set("TemsLogin-${project.version}.jar")
 
     dependencies {
         excludedLibs.forEach { exclude(dependency(it)) }

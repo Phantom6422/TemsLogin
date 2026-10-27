@@ -1,5 +1,8 @@
 0.27.0 - TemsLogin rebrand, Paper/Spigot/Bukkit support, security fixes
 
+- Migrate configuration, messages, forbidden passwords and SQLite databases from LibreLogin automatically
+- Name the built jar `TemsLogin-<version>.jar`
+
 - Rebrand the plugin to TemsLogin (plugin id, data folder, `/temslogin` command, `temslogin.*` permissions)
 - Keep `/librelogin` as a command alias and migrate existing config/message folders automatically
 - Restore Paper, Spigot and Bukkit support, tested against Minecraft 26.3
