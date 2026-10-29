@@ -7,10 +7,16 @@ built for Velocity proxies and for Paper, Spigot and Bukkit servers.
 > [kyngs](https://github.com/kyngs). This fork is only for [PhantomsNetwork](https://phantomsnetwork.org) internal
 > use, so we do not provide support for others.
 
-> [!WARNING]
-> **This fork has been heavily modified with the help of AI.** Expect bugs and unintended behaviour, including
-> in authentication and data migration paths. Test every update on a staging server before using it in
-> production, and keep backups of your database and data folder.
+>[!WARNING]
+> **This plugin is heavily modified using AI / "vibe coding" methods.**
+>
+> Large parts of this repository — including the Velocity 4.x support, the Paper/Spigot/Bukkit platform layer,
+> the authentication and session handling, the security and networking hardening, the LibreLogin migration
+> logic and this documentation — were produced with an AI coding agent under human direction and review.
+>
+> It is tested by building and by targeted unit-style checks, but it has **not** been battle-tested on a live
+> network. Read the diff, test on a staging proxy/server, and keep a rollback jar before running it in
+> production. Treat every change in here as "review before trusting".
 
 ## Quick information
 
