@@ -56,8 +56,18 @@ public class AuthenticEMailHandler implements EmailHandler {
             }
 
             mail.setHtmlMsg(content);
-            Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
-            mail.send();
+
+            // The context class loader is thread-local state on a pooled thread; leaving it set keeps the
+            // plugin class loader (and everything it references) alive after a reload.
+            var thread = Thread.currentThread();
+            var previousClassLoader = thread.getContextClassLoader();
+
+            try {
+                thread.setContextClassLoader(getClass().getClassLoader());
+                mail.send();
+            } finally {
+                thread.setContextClassLoader(previousClassLoader);
+            }
         } catch (EmailException e) {
             throw new RuntimeException(e);
         }

@@ -60,6 +60,7 @@ import xyz.kyngs.librelogin.common.integration.FloodgateIntegration;
 import xyz.kyngs.librelogin.common.integration.luckperms.LuckPermsIntegration;
 import xyz.kyngs.librelogin.common.listener.LoginTryListener;
 import xyz.kyngs.librelogin.common.log.Log4JFilter;
+import xyz.kyngs.librelogin.common.log.LogFilter;
 import xyz.kyngs.librelogin.common.mail.AuthenticEMailHandler;
 import xyz.kyngs.librelogin.common.migrate.*;
 import xyz.kyngs.librelogin.common.premium.AuthenticPremiumProvider;
@@ -67,16 +68,22 @@ import xyz.kyngs.librelogin.common.server.AuthenticServerHandler;
 import xyz.kyngs.librelogin.common.totp.AuthenticTOTPProvider;
 import xyz.kyngs.librelogin.common.util.CancellableTask;
 import xyz.kyngs.librelogin.common.util.GeneralUtil;
+import xyz.kyngs.librelogin.common.util.LongHashSet;
 
 import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.nio.file.StandardCopyOption;
 import java.sql.Timestamp;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 
@@ -102,8 +109,9 @@ public abstract class AuthenticLibreLogin<P, S> implements LibreLoginPlugin<P, S
     private final Map<String, ReadDatabaseProviderRegistration<?, ?, ?>> readProviders;
     private final Map<Class<?>, DatabaseConnectorRegistration<?, ?>> databaseConnectors;
     private final Multimap<P, CancellableTask> cancelOnExit;
+    private final List<CancellableTask> persistentTasks;
     private final PlatformHandle<P, S> platformHandle;
-    private final Set<String> forbiddenPasswords;
+    private final LongHashSet forbiddenPasswords;
     protected Logger logger;
     private AuthenticPremiumProvider premiumProvider;
     private AuthenticEventProvider<P, S> eventProvider;
@@ -121,14 +129,17 @@ public abstract class AuthenticLibreLogin<P, S> implements LibreLoginPlugin<P, S
     private DatabaseConnector<?, ?> databaseConnector;
     private AuthenticEMailHandler eMailHandler;
     private LoginTryListener<P, S> loginTryListener;
+    private LogFilter logFilter;
 
     protected AuthenticLibreLogin() {
         cryptoProviders = new ConcurrentHashMap<>();
         readProviders = new ConcurrentHashMap<>();
         databaseConnectors = new ConcurrentHashMap<>();
         platformHandle = providePlatformHandle();
-        forbiddenPasswords = new HashSet<>();
+        // The list has close to a million entries; 64-bit hashes need ~8 MB instead of >100 MB of strings.
+        forbiddenPasswords = new LongHashSet(1 << 20);
         cancelOnExit = HashMultimap.create();
+        persistentTasks = new CopyOnWriteArrayList<>();
     }
 
     public Map<Class<?>, DatabaseConnectorRegistration<?, ?>> getDatabaseConnectors() {
@@ -194,7 +205,7 @@ public abstract class AuthenticLibreLogin<P, S> implements LibreLoginPlugin<P, S
             return false;
         }
 
-        return !forbiddenPasswords.contains(password.toUpperCase(Locale.ROOT));
+        return !forbiddenPasswords.contains(hashPassword(password.toUpperCase(Locale.ROOT)));
     }
 
     @Override
@@ -236,8 +247,10 @@ public abstract class AuthenticLibreLogin<P, S> implements LibreLoginPlugin<P, S
         if (logger == null) logger = provideLogger();
 
         try {
-            new Log4JFilter().inject();
+            logFilter = new Log4JFilter();
+            logFilter.inject();
         } catch (Throwable ignored) {
+            logFilter = null;
             logger.warn("LogFilter is not supported on this platform, are you not running Log4J?");
         }
 
@@ -596,7 +609,14 @@ public abstract class AuthenticLibreLogin<P, S> implements LibreLoginPlugin<P, S
 
         if (!file.exists()) {
             logger.info("Forbidden passwords list doesn't exist, downloading...");
-            try (BufferedInputStream in = new BufferedInputStream(URI.create("https://raw.githubusercontent.com/Phantom6422/TemsLogin/dev/forbidden-passwords.txt").toURL().openStream())) {
+
+            // URL#openStream() has no timeouts, so a stalled endpoint would block plugin startup forever.
+            var connection = URI.create("https://raw.githubusercontent.com/Phantom6422/TemsLogin/dev/forbidden-passwords.txt").toURL().openConnection();
+            connection.setConnectTimeout(5000);
+            connection.setReadTimeout(15000);
+            connection.setRequestProperty("User-Agent", "TemsLogin");
+
+            try (BufferedInputStream in = new BufferedInputStream(connection.getInputStream())) {
                 if (!file.createNewFile()) {
                     throw new IOException("Failed to create file");
                 }
@@ -621,11 +641,20 @@ public abstract class AuthenticLibreLogin<P, S> implements LibreLoginPlugin<P, S
                 e.printStackTrace();
                 logger.warn("Failed to download forbidden passwords list, using template instead");
 
+                // Do not leave a partially downloaded file behind, it would be treated as complete next start.
+                if (file.exists() && !file.delete()) {
+                    logger.warn("Failed to delete the partial forbidden passwords list");
+                }
+
                 try (var template = getResourceAsStream("forbidden-passwords-template.txt")) {
                     if (template == null) {
                         throw new IOException("The bundled forbidden passwords template is missing");
                     }
                     Files.copy(template, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                }
+            } finally {
+                if (connection instanceof HttpURLConnection http) {
+                    http.disconnect();
                 }
             }
         }
@@ -636,8 +665,26 @@ public abstract class AuthenticLibreLogin<P, S> implements LibreLoginPlugin<P, S
                 if (line.startsWith("# ")) {
                     continue;
                 }
-                forbiddenPasswords.add(line.toUpperCase(Locale.ROOT));
+                forbiddenPasswords.add(hashPassword(line.toUpperCase(Locale.ROOT)));
             }
+        }
+
+        forbiddenPasswords.freeze();
+    }
+
+    /**
+     * Maps a password to the 64 bits stored in the forbidden password set. Truncated SHA-256 keeps the
+     * chance of a false positive negligible (roughly 3e-8 for a million entries) and cannot be used to
+     * bypass the list: a collision only makes an extra password rejected.
+     */
+    private static long hashPassword(String password) {
+        try {
+            var digest = MessageDigest.getInstance("SHA-256");
+            var hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
+
+            return ByteBuffer.wrap(hash).getLong();
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 is not available", e);
         }
     }
 
@@ -741,6 +788,18 @@ public abstract class AuthenticLibreLogin<P, S> implements LibreLoginPlugin<P, S
     }
 
     protected void disable() {
+        persistentTasks.forEach(CancellableTask::cancel);
+        persistentTasks.clear();
+
+        if (logFilter != null) {
+            try {
+                logFilter.remove();
+            } catch (Throwable ignored) {
+                // The platform may not support Log4J, nothing to clean up in that case.
+            }
+            logFilter = null;
+        }
+
         if (databaseConnector != null) {
             try {
                 databaseConnector.disconnect();
@@ -864,6 +923,17 @@ public abstract class AuthenticLibreLogin<P, S> implements LibreLoginPlugin<P, S
 
     public void cancelOnExit(CancellableTask task, P player) {
         cancelOnExit.put(player, task);
+    }
+
+    /**
+     * Schedules a repeating task that lives until the plugin is disabled.
+     */
+    public CancellableTask repeatPersistently(Runnable runnable, long delayInMillis, long repeatInMillis) {
+        var task = repeat(runnable, delayInMillis, repeatInMillis);
+
+        persistentTasks.add(task);
+
+        return task;
     }
 
     public boolean floodgateEnabled() {

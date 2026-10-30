@@ -41,6 +41,7 @@ public class AuthenticServerHandler<P, S> implements ServerHandler<P, S> {
         this.limboServers = new ArrayList<>();
 
         this.pingCache = Caffeine.newBuilder()
+                .maximumSize(256)
                 .build(server -> {
                     if (!plugin.getConfiguration().get(ConfigurationKeys.PING_SERVERS))
                         return Optional.of(new ServerPing(Integer.MAX_VALUE));
@@ -52,7 +53,7 @@ public class AuthenticServerHandler<P, S> implements ServerHandler<P, S> {
                     return Optional.ofNullable(plugin.getConfiguration().get(IGNORE_MAX_PLAYERS_FROM_BACKEND_PING) ? new ServerPing(Integer.MAX_VALUE) : ping);
                 });
 
-        plugin.repeat(() -> pingCache.refreshAll(pingCache.asMap().keySet()), 10000, 10000);
+        plugin.repeatPersistently(() -> pingCache.refreshAll(pingCache.asMap().keySet()), 10000, 10000);
 
         var handle = plugin.getPlatformHandle();
 

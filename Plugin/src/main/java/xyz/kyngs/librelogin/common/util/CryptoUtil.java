@@ -23,7 +23,7 @@ public class CryptoUtil {
         var salt = rest.substring(0, 22);
         var hash = rest.substring(22);
 
-        algo = "BCrypt-" + algo.toUpperCase();
+        algo = "BCrypt-" + algo.toUpperCase(java.util.Locale.ROOT);
 
         return new HashedPassword(
                 cost + "$" + hash,
@@ -44,7 +44,7 @@ public class CryptoUtil {
     public static String rawBcryptFromHashed(HashedPassword password) {
         var extracted = convertHash(password.hash());
         return "$%s$%s$%s%s".formatted(
-                password.algo().replace("BCrypt-", "").toLowerCase(),
+                password.algo().replace("BCrypt-", "").toLowerCase(java.util.Locale.ROOT),
                 extracted.key(),
                 password.salt(),
                 extracted.value()

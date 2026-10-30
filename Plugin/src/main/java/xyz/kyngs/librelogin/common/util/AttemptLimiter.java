@@ -29,6 +29,7 @@ public class AttemptLimiter<T> {
     public AttemptLimiter(int maxAttempts, long duration, TimeUnit unit) {
         this.maxAttempts = maxAttempts;
         this.attempts = Caffeine.newBuilder()
+                .maximumSize(10_000)
                 .expireAfterWrite(duration, unit)
                 .build();
     }

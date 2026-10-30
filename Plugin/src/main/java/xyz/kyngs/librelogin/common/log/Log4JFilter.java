@@ -16,9 +16,36 @@ import org.apache.logging.log4j.message.Message;
 
 public class Log4JFilter extends LogFilter implements Filter {
 
+    /**
+     * The instance currently attached to the root logger. Kept so it can be removed again and so that
+     * re-enabling the plugin does not add a second filter (each filter also pins the plugin class loader).
+     */
+    private static volatile Log4JFilter injected;
+
     @Override
     public void inject() {
-        ((Logger) LogManager.getRootLogger()).addFilter(new Log4JFilter());
+        var rootLogger = (Logger) LogManager.getRootLogger();
+        var previous = injected;
+
+        if (previous != null) {
+            // Filters live on the LoggerConfig, not on the Logger itself.
+            rootLogger.get().removeFilter(previous);
+        }
+
+        rootLogger.addFilter(this);
+        injected = this;
+    }
+
+    @Override
+    public void remove() {
+        var current = injected;
+
+        if (current == null) {
+            return;
+        }
+
+        ((Logger) LogManager.getRootLogger()).get().removeFilter(current);
+        injected = null;
     }
 
     private Result checkMessageResult(String message) {

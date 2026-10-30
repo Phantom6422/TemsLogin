@@ -30,14 +30,12 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-import java.util.concurrent.ForkJoinPool;
 
 import static xyz.kyngs.librelogin.common.config.ConfigurationKeys.DATABASE_TYPE;
 import static xyz.kyngs.librelogin.common.config.ConfigurationKeys.MIGRATION_TYPE;
 
 public class GeneralUtil {
 
-    public static final ForkJoinPool ASYNC_POOL = new ForkJoinPool(4);
     private static final SecureRandom RANDOM = new SecureRandom();
 
     public static String readInput(InputStream inputStream) throws IOException {

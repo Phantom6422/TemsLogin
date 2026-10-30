@@ -32,6 +32,8 @@ public abstract class LogFilter {
         PROTECTED_COMMANDS.add("setemail");
         PROTECTED_COMMANDS.add("librelogin user register");
         PROTECTED_COMMANDS.add("librelogin user pass-change");
+        // The staff command was renamed, so the old literal above no longer matched `/temslogin user pass-change`.
+        PROTECTED_COMMANDS.add("pass-change");
     }
 
     protected boolean checkMessage(String message) {
@@ -48,5 +50,12 @@ public abstract class LogFilter {
     }
 
     public abstract void inject();
+
+    /**
+     * Removes the filter again. Called on disable so that a reload does not stack filters on the root logger.
+     */
+    public void remove() {
+        // Optional, only platforms with Log4J need it.
+    }
 
 }

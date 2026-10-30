@@ -96,6 +96,7 @@ public class CommandProvider<P, S> extends AuthenticHandler<P, S> {
         }, false);
 
         confirmCache = Caffeine.newBuilder()
+                .maximumSize(1_000)
                 .expireAfterWrite(5, TimeUnit.MINUTES)
                 .build();
 

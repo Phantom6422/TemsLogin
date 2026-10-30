@@ -25,6 +25,7 @@ public class RateLimiter<T> {
 
     public RateLimiter(long amount, TimeUnit unit) {
         expiring = Caffeine.newBuilder()
+                .maximumSize(10_000)
                 .expireAfterWrite(amount, unit)
                 .build();
     }

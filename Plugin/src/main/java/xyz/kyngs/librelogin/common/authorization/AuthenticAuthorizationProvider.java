@@ -50,16 +50,18 @@ public class AuthenticAuthorizationProvider<P, S> extends AuthenticHandler<P, S>
         var millis = plugin.getConfiguration().get(ConfigurationKeys.MILLISECONDS_TO_REFRESH_NOTIFICATION);
 
         if (millis > 0) {
-            plugin.repeat(this::notifyUnauthorized, 0, millis);
+            plugin.repeatPersistently(this::notifyUnauthorized, 0, millis);
         }
 
-        plugin.repeat(this::broadcastActionbars, 0, 1000);
+        plugin.repeatPersistently(this::broadcastActionbars, 0, 1000);
 
         emailConfirmCache = Caffeine.newBuilder()
+                .maximumSize(1_000)
                 .expireAfterWrite(10, TimeUnit.MINUTES)
                 .build();
 
         passwordResetCache = Caffeine.newBuilder()
+                .maximumSize(1_000)
                 .expireAfterWrite(10, TimeUnit.MINUTES)
                 .build();
     }

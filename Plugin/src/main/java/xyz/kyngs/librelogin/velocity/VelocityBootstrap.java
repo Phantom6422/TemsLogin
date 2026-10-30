@@ -61,24 +61,36 @@ public class VelocityBootstrap implements LibreLoginProvider<Player, RegisteredS
         // We cannot pass this as a parameter to the constructor because the plugin is technically still not loaded
         // And, we cannot past the container as a parameter to the constructor because the proxy still did not assign the instance to it.
         // So, we have to "mock" the container and pass this as the instance. I'm kinda surprised this works, but in theory could break in the future.
-        var libraryManager = new VelocityLibraryManager<PluginContainer>(server.getPluginManager(), new PluginContainer() {
-            @Override
-            public PluginDescription getDescription() {
-                return container.getDescription();
-            }
-
-            @Override
-            public Optional<?> getInstance() {
-                return Optional.of(this);
-            }
-
-            @Override
-            public ExecutorService getExecutorService() {
-                return Executors.newSingleThreadExecutor();
-            }
+        // Allocated once and shut down after loading. Creating a new executor on every getExecutorService()
+        // call would leak one non-daemon thread per call.
+        var libraryExecutor = Executors.newSingleThreadExecutor(runnable -> {
+            var thread = new Thread(runnable, "TemsLogin-Library-Loader");
+            thread.setDaemon(true);
+            return thread;
         });
 
-        libraryManager.configureFromJSON();
+        try {
+            var libraryManager = new VelocityLibraryManager<PluginContainer>(server.getPluginManager(), new PluginContainer() {
+                @Override
+                public PluginDescription getDescription() {
+                    return container.getDescription();
+                }
+
+                @Override
+                public Optional<?> getInstance() {
+                    return Optional.of(this);
+                }
+
+                @Override
+                public ExecutorService getExecutorService() {
+                    return libraryExecutor;
+                }
+            });
+
+            libraryManager.configureFromJSON();
+        } finally {
+            libraryExecutor.shutdown();
+        }
 
         libreLogin = new VelocityLibreLogin(this);
         injector.injectMembers(libreLogin);

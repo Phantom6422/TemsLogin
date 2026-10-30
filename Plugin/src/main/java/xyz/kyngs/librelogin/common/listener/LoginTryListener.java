@@ -25,6 +25,7 @@ public class LoginTryListener<P, S> {
     public LoginTryListener(AuthenticLibreLogin<P, S> libreLogin) {
         this.plugin = libreLogin;
         this.loginTries = Caffeine.newBuilder()
+                .maximumSize(10_000)
                 .expireAfterAccess(plugin.getConfiguration().get(ConfigurationKeys.MILLISECONDS_TO_EXPIRE_LOGIN_ATTEMPTS), TimeUnit.MILLISECONDS)
                 .build();
         libreLogin.getEventProvider().subscribe(libreLogin.getEventTypes().wrongPassword, this::onWrongPassword);

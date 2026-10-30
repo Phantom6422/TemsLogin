@@ -125,8 +125,9 @@ public class PaperLibreLogin extends AuthenticLibreLogin<Player, World> implemen
     @Override
     protected void disable() {
         PacketEvents.getAPI().terminate();
-        if (getDatabaseProvider() == null) return; //Not initialized
 
+        // Always run the common cleanup: super.disable() is null-safe and also cancels scheduled tasks
+        // and detaches the log filter, which a partially initialised plugin would otherwise leak.
         super.disable();
     }
 

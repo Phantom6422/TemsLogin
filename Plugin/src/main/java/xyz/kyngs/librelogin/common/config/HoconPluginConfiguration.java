@@ -79,7 +79,7 @@ public class HoconPluginConfiguration {
         var name = get(NEW_UUID_CREATOR);
 
         try {
-            return NewUUIDCreator.valueOf(name.toUpperCase());
+            return NewUUIDCreator.valueOf(name.toUpperCase(java.util.Locale.ROOT));
         } catch (IllegalArgumentException e) {
             return NewUUIDCreator.RANDOM;
         }

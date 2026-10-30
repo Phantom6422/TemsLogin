@@ -82,6 +82,7 @@ public class PaperListeners extends AuthenticListeners<PaperLibreLogin, Player, 
     private final KeyPair keyPair = EncryptionUtil.generateKeyPair();
     private final Random random = new SecureRandom();
     private final Cache<String, EncryptionData> encryptionDataCache = Caffeine.newBuilder()
+            .maximumSize(10_000)
             .expireAfterWrite(2, TimeUnit.MINUTES)
             .build();
     private final FloodgateHelper floodgateHelper;
@@ -95,14 +96,19 @@ public class PaperListeners extends AuthenticListeners<PaperLibreLogin, Player, 
         floodgateHelper = this.plugin.floodgateEnabled() ? new FloodgateHelper() : null;
 
         ipCache = Caffeine.newBuilder()
+                .weakKeys()
+                .maximumSize(10_000)
                 .expireAfterWrite(2, TimeUnit.MINUTES)
                 .build();
 
         readOnlyUserCache = Caffeine.newBuilder()
+                .maximumSize(10_000)
                 .expireAfterWrite(2, TimeUnit.MINUTES)
                 .build();
 
         spawnLocationCache = Caffeine.newBuilder()
+                .weakKeys()
+                .maximumSize(10_000)
                 .expireAfterWrite(2, TimeUnit.MINUTES)
                 .build();
     }
@@ -443,7 +449,15 @@ public class PaperListeners extends AuthenticListeners<PaperLibreLogin, Player, 
                     return true;
                 }
 
-                var returnedId = GeneralUtil.fromUnDashedUUID(id.getAsString());
+                UUID returnedId;
+
+                try {
+                    returnedId = GeneralUtil.fromUnDashedUUID(id.getAsString());
+                } catch (RuntimeException e) {
+                    // A malformed id from the session server must fail the login, not throw into the packet task.
+                    plugin.getLogger().debug("Malformed UUID in session server response: " + id.getAsString(), e);
+                    return false;
+                }
 
                 return expectedPremiumId.equals(returnedId);
             }
