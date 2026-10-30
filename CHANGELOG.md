@@ -1,3 +1,16 @@
+0.27.1 - Memory, resource and security hardening
+
+- Store the forbidden password list as sorted 64-bit hashes (~8 MB instead of roughly 100 MB)
+- Bound every internal cache and use weak keys for player-keyed caches
+- Close premium API connections and add timeouts to every request, including session lookups
+- Add timeouts and a size limit to the forbidden password download, and never keep a partial file
+- Cancel repeating tasks on disable instead of leaving them running
+- Remove the log filter on disable and stop stacking filters on reload
+- Fix the log filter not matching `/temslogin user pass-change`, which leaked passwords into the proxy log
+- Stop leaking a thread per library load call and restore the context class loader after sending mail
+- Use locale-independent casing so config parsing cannot break under locales such as Turkish
+- Avoid throwing on malformed session server responses
+
 0.27.0 - TemsLogin rebrand, Paper/Spigot/Bukkit support, security fixes
 
 - Migrate configuration, messages, forbidden passwords and SQLite databases from LibreLogin automatically
