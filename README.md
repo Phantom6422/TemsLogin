@@ -54,7 +54,7 @@ alt="Documentation on the upstream LibreLogin wiki"></img>
 
 ## Platforms
 
-- [x] Velocity (3.x & 4.x, including 4.3.0)
+- [x] Velocity (3.x & 4.x, including 4.3.2-SNAPSHOT)
 - [x] Paper (1.20.5+ / 26.x, tested up to 26.3)
 - [x] Spigot / Bukkit (1.20.5+ / 26.x, tested up to 26.3)
 - [ ] BungeeCord *(Dropped in 0.25+ due to Adventure 5 migration)*

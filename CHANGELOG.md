@@ -1,3 +1,10 @@
+0.28.0 - Velocity 4.3.2-SNAPSHOT support
+
+- Build against Velocity API 4.3.2-SNAPSHOT
+- Read the NanoLimbo forwarding configuration reflectively, removing the dependency on the unpublished
+  `velocity-proxy` artifact
+- CI now starts Velocity 4.3.2-SNAPSHOT-48 with the plugin
+
 0.27.1 - Memory, resource and security hardening
 
 - Store the forbidden password list as sorted 64-bit hashes (~8 MB instead of roughly 100 MB)

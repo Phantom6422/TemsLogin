@@ -30,7 +30,6 @@ dependencies {
     // Velocity
     annotationProcessor(libs.velocity.api)
     compileOnly(libs.velocity.api)
-    compileOnly(libs.velocity.proxy)
 
     // MySQL
     librarian(libs.mariadb)
