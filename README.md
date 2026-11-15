@@ -96,7 +96,7 @@ Migration is automatic on the first start:
 ```
 
 The compiled jar will be available in `Plugin/build/libs/TemsLogin-<version>.jar`, for example
-`TemsLogin-0.28.0.jar`.
+`TemsLogin-0.29.0.jar`.
 
 ## Special thanks
 

@@ -1,4 +1,4 @@
-Unreleased - Velocity-only
+0.29.0 - Velocity-only
 
 - Drop Paper, Spigot and Bukkit support, including the PacketEvents protocol layer, the Bukkit/Paper
   platform classes, `plugin.yml`/`paper-plugin.yml`, the Yggdrasil key resource and the FastLogin-derived code
