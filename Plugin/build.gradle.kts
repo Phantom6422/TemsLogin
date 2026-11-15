@@ -14,12 +14,8 @@ repositories {
     mavenCentral()
     maven("https://repo.opencollab.dev/maven-snapshots/")
     maven("https://repo.papermc.io/repository/maven-public/")
-    maven("https://hub.spigotmc.org/nexus/")
     maven("https://repo.kyngs.xyz/public/")
     maven("https://mvn.exceptionflug.de/repository/exceptionflug-public/")
-    maven("https://repo.dmulloy2.net/repository/public/")
-    maven("https://repo.codemc.io/repository/maven-releases/")
-    maven("https://repo.codemc.io/repository/maven-snapshots/")
     maven("https://jitpack.io/")
 }
 
@@ -43,7 +39,6 @@ dependencies {
 
     // ACF
     librarian(libs.acf.velocity)
-    librarian(libs.acf.paper)
 
     // Utils
     librarian(libs.caffeine)
@@ -65,17 +60,12 @@ dependencies {
     // RedisBungee
     compileOnly(libs.redisbungee)
 
-    // Paper / Bukkit / Spigot
-    compileOnly(libs.paper.api)
-    compileOnly(libs.adventure.api)
-    compileOnly(libs.packetevents.spigot)
+    // Velocity internals used through reflection, plus the Log4J filter
     compileOnly(libs.netty.transport)
-    compileOnly(libs.datafixerupper)
     compileOnly(libs.log4j.core)
 
     // Librarian
     implementation(libs.librarian.velocity)
-    implementation(libs.librarian.paper)
 
     // NanoLimboPlugin
     compileOnly(libs.nanolimbo.api)
@@ -89,13 +79,6 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
-}
-
-tasks.withType<ProcessResources> {
-    outputs.upToDateWhen { false }
-    filesMatching(listOf("plugin.yml", "paper-plugin.yml")) {
-        expand(mapOf("version" to version))
-    }
 }
 
 sourceSets {
@@ -129,7 +112,6 @@ tasks.withType<ShadowJar> {
     relocate("com.typesafe.config", "xyz.kyngs.librelogin.lib.hocon")
     relocate("com.zaxxer.hikari", "xyz.kyngs.librelogin.lib.hikari")
     relocate("org.mariadb", "xyz.kyngs.librelogin.lib.mariadb")
-    relocate("org.bstats", "xyz.kyngs.librelogin.lib.metrics")
     relocate("org.intellij", "xyz.kyngs.librelogin.lib.intellij")
     relocate("org.jetbrains", "xyz.kyngs.librelogin.lib.jetbrains")
     relocate("io.leangen.geantyref", "xyz.kyngs.librelogin.lib.reflect")

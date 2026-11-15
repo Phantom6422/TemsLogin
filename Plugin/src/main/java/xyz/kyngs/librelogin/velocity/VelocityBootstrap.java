@@ -55,6 +55,14 @@ public class VelocityBootstrap implements LibreLoginProvider<Player, RegisteredS
     public VelocityBootstrap(ProxyServer server, Injector injector, Logger logger, PluginContainer container) {
         this.server = server;
 
+        // Refuse to start on unsupported proxies instead of enabling with an incompatible API.
+        var proxyVersion = server.getVersion().getVersion();
+
+        if (!VelocityRequirements.isSupported(proxyVersion)) {
+            throw new IllegalStateException("TemsLogin requires Velocity " + VelocityRequirements.MINIMUM_VERSION
+                    + " or newer, but this proxy reports " + proxyVersion + ". TemsLogin will not be enabled.");
+        }
+
         logger.info("Loading libraries...");
 
         // This is a very ugly hack to be able to load libraries in the constructor

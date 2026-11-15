@@ -40,7 +40,7 @@ public class ConfigurationKeys {
     public static final ConfigurationKey<List<String>> LIMBO = new ConfigurationKey<>(
             "limbo",
             List.of("limbo0", "limbo1"),
-            "The authentication servers/worlds, players should be sent to, when not authenticated. On Paper, players will be spawned on the world spawn. THIS SERVERS MUST BE REGISTERED IN THE PROXY CONFIG. IN CASE OF PAPER, THE WORLDS MUST EXIST.",
+            "The authentication servers (limbos) players should be sent to when not authenticated. THE SERVERS MUST BE REGISTERED IN THE PROXY CONFIG.",
             ConfigurateHelper::getStringList
     );
 
@@ -49,11 +49,8 @@ public class ConfigurationKeys {
             "lobby",
             LOBBY_DEFAULT,
             """
-                    !!WHEN USING PAPER, PUT ALL WORLDS UNDER "root"!!
-                    On Paper, players will be spawned on the world spawn.
-                    
-                    The servers/worlds player should be sent to when they are authenticated. THE SERVERS MUST BE REGISTERED IN THE PROXY CONFIG. IN CASE OF PAPER, THE WORLDS MUST EXIST.
-                    The configuration allows configuring forced hosts; the servers/worlds in "root" are used when players do not connect from a forced host. Use § instead of dots.
+                    The servers players should be sent to when they are authenticated. THE SERVERS MUST BE REGISTERED IN THE PROXY CONFIG.
+                    The configuration allows configuring forced hosts; the servers in "root" are used when players do not connect from a forced host. Use § instead of dots.
                     See: https://github.com/kyngs/LibrePremium/wiki/Configuring-Servers
                     """,
             ConfigurateHelper::getServerMap

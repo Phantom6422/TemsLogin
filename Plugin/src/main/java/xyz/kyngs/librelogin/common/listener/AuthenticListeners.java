@@ -46,8 +46,8 @@ public class AuthenticListeners<Plugin extends AuthenticLibreLogin<P, S>, P, S> 
         }
 
         if (user == null) {
-            // Platforms that cannot spoof the player profile (Spigot/Bukkit) may hand us a UUID that differs
-            // from the one stored in the database, so retry with the username before giving up.
+            // Fall back to the last known nickname when the UUID is not in the database, for example after
+            // a UUID change or for rows created by a legacy import.
             user = plugin.getDatabaseProvider().getByName(platformHandle.getUsernameForPlayer(player));
         }
 
@@ -298,7 +298,7 @@ public class AuthenticListeners<Plugin extends AuthenticLibreLogin<P, S>, P, S> 
             user = plugin.getDatabaseProvider().getByUUID(id);
 
             if (user == null) {
-                // See onPostLogin: the platform UUID may not match the stored one on Spigot/Bukkit.
+                // See onPostLogin: the profile UUID may not match the stored one.
                 user = plugin.getDatabaseProvider().getByName(platformHandle.getUsernameForPlayer(player));
             }
 

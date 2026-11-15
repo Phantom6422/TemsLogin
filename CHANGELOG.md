@@ -1,3 +1,11 @@
+Unreleased - Velocity-only
+
+- Drop Paper, Spigot and Bukkit support, including the PacketEvents protocol layer, the Bukkit/Paper
+  platform classes, `plugin.yml`/`paper-plugin.yml`, the Yggdrasil key resource and the FastLogin-derived code
+- Remove the Paper, Bukkit/Spigot, bStats and PacketEvents build dependencies and repositories
+- Require Velocity 4.3.0 or newer and refuse to enable on older proxies with a clear error
+- Keep the common authentication code and the Velocity platform layer unchanged
+
 0.28.0 - Velocity 4.3.2-SNAPSHOT support
 
 - Build against Velocity API 4.3.2-SNAPSHOT

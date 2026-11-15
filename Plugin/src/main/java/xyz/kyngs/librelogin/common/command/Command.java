@@ -75,7 +75,8 @@ public class Command<P> extends BaseCommand {
         var user = plugin.getDatabaseProvider().getByUUID(uuid);
 
         if (user == null) {
-            // On platforms that cannot spoof the player profile (Spigot/Bukkit) the server-side UUID may differ from the database one.
+            // Fall back to the last known nickname when the UUID is not in the database, for example after
+            // a UUID change or for rows created by a legacy import.
             user = plugin.getDatabaseProvider().getByName(plugin.getPlatformHandle().getUsernameForPlayer(player));
         }
 

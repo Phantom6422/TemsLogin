@@ -1,7 +1,7 @@
 # TemsLogin
 
 TemsLogin is an authentication plugin for cracked and premium Minecraft servers with hybrid (mixed) logins,
-built for Velocity proxies and for Paper, Spigot and Bukkit servers.
+built for Velocity 4.3.0+ proxies.
 
 > **Note:** This plugin is originally forked from [kyngs/LibreLogin](https://github.com/kyngs/LibreLogin) by
 > [kyngs](https://github.com/kyngs). This fork is only for [PhantomsNetwork](https://phantomsnetwork.org) internal
@@ -10,9 +10,9 @@ built for Velocity proxies and for Paper, Spigot and Bukkit servers.
 >[!WARNING]
 > **This plugin is heavily modified using AI / "vibe coding" methods.**
 >
-> Large parts of this repository — including the Velocity 4.x support, the Paper/Spigot/Bukkit platform layer,
-> the authentication and session handling, the security and networking hardening, the LibreLogin migration
-> logic and this documentation — were produced with an AI coding agent under human direction and review.
+> Large parts of this repository — including the Velocity 4.x support, the authentication and session handling,
+> the security and networking hardening, the LibreLogin migration logic and this documentation — were produced
+> with an AI coding agent under human direction and review.
 >
 > It is tested by building and by targeted unit-style checks, but it has **not** been battle-tested on a live
 > network. Read the diff, test on a staging proxy/server, and keep a rollback jar before running it in
@@ -30,7 +30,7 @@ documentation for this plugin. Configuration keys, messages and behaviour are th
 
 - the command is `/temslogin` (`/librelogin` still works as an alias),
 - permissions are under `temslogin.*` instead of `librelogin.*` / `librepremium.*`,
-- the data folder is `plugins/temslogin` (`plugins/TemsLogin` on Paper/Spigot).
+- the data folder is `plugins/temslogin`.
 
 <a href="https://github.com/kyngs/LibreLogin/wiki">
 <img src="https://img.shields.io/badge/Documentation-LibreLogin%20Wiki-555555?style=for-the-badge&logo=wikipedia"
@@ -49,15 +49,15 @@ alt="Documentation on the upstream LibreLogin wiki"></img>
 
 ## Considerations
 
-- When using on a proxy, you need to secure your limbo
-- Bukkit, Spigot and Paper servers require [PacketEvents](https://modrinth.com/plugin/packetevents) 2.14.0 or newer
+- You need to secure your limbo servers
+- Velocity **4.3.0 or newer** is required. TemsLogin refuses to start on older proxies.
 
 ## Platforms
 
-- [x] Velocity (3.x & 4.x, including 4.3.2-SNAPSHOT)
-- [x] Paper (1.20.5+ / 26.x, tested up to 26.3)
-- [x] Spigot / Bukkit (1.20.5+ / 26.x, tested up to 26.3)
-- [ ] BungeeCord *(Dropped in 0.25+ due to Adventure 5 migration)*
+- [x] Velocity (4.3.0+, tested with 4.3.2-SNAPSHOT)
+
+Paper, Spigot, Bukkit and BungeeCord are no longer supported. TemsLogin is a proxy-side authentication
+plugin; backend servers must run in offline mode and accept Velocity forwarding.
 
 ## Commands and permissions
 
@@ -86,7 +86,7 @@ Migration is automatic on the first start:
   a normal plugin update would.
 - The database schema and table name (`librepremium_data`) are intentionally unchanged, so an existing database
   keeps working. MySQL/PostgreSQL users just keep pointing at the same database in the imported `config.conf`.
-- If you publish this plugin yourself, remove the upstream bStats ids first. Telemetry is disabled in this fork.
+- bStats telemetry is not bundled in this fork.
 
 ## Building from Source
 
@@ -96,14 +96,12 @@ Migration is automatic on the first start:
 ```
 
 The compiled jar will be available in `Plugin/build/libs/TemsLogin-<version>.jar`, for example
-`TemsLogin-0.27.0-SNAPSHOT.jar`.
+`TemsLogin-0.28.0.jar`.
 
 ## Special thanks
 
 - [kyngs](https://github.com/kyngs) - author of [LibreLogin](https://github.com/kyngs/LibreLogin), which this plugin is based on
 - [Raixo](https://github.com/RAIXOCZ) - for developing the original bungeecord port
-- [FastLogin contributors](https://github.com/games647/FastLogin) - for their work, which was used as a base for the
-  paper port
 - [Fejby](https://github.com/Fejby) - for providing Floodgate test server and helping with testing
 
 ## License

@@ -269,15 +269,6 @@ public abstract class AuthenticLibreLogin<P, S> implements LibreLoginPlugin<P, S
             // Silently ignore
         }
 
-        if (platformHandle.getPlatformIdentifier().equals("paper")) {
-            LIMBO.setDefault(List.of("limbo"));
-
-            var lobby = HashMultimap.<String, String>create();
-            lobby.put("root", "world");
-
-            LOBBY.setDefault(lobby);
-        }
-
         eventProvider = new AuthenticEventProvider<>(this);
         premiumProvider = new AuthenticPremiumProvider(this);
 
