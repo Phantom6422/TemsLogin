@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - master
-      - dev
     tags:
       - '*'
 
@@ -45,7 +44,7 @@ jobs:
           java -jar velocity.jar
 
       - name: Publish with Gradle
-        if: github.repository == 'kyngs/LibreLogin' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev')
+        if: github.repository == 'kyngs/LibreLogin' && github.ref == 'refs/heads/master'
         run: ./gradlew :API:publish -PkyngsRepoUsername=${{ secrets.KYNGS_REPO_TOKEN }} -PkyngsRepoPassword=${{ secrets.KYNGS_REPO_SECRET }}
 
       - name: Update Wiki
@@ -67,9 +66,3 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: ./gradlew :Plugin:release -PbuildTarget=release
-
-      - name: Publish dev build
-        if: github.repository == 'kyngs/LibreLogin' && github.ref == 'refs/heads/dev'
-        env:
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_DEV_WEBHOOK_URL }}
-        run: ./gradlew :Plugin:release -PbuildTarget=dev
