@@ -3,7 +3,7 @@ name: Build and Publish
 on:
   push:
     branches:
-      - master
+      - main
     tags:
       - '*'
 
@@ -44,11 +44,11 @@ jobs:
           java -jar velocity.jar
 
       - name: Publish with Gradle
-        if: github.repository == 'kyngs/LibreLogin' && github.ref == 'refs/heads/master'
+        if: github.repository == 'kyngs/LibreLogin' && github.ref == 'refs/heads/main'
         run: ./gradlew :API:publish -PkyngsRepoUsername=${{ secrets.KYNGS_REPO_TOKEN }} -PkyngsRepoPassword=${{ secrets.KYNGS_REPO_SECRET }}
 
       - name: Update Wiki
-        if: github.repository == 'kyngs/LibreLogin' && github.ref == 'refs/heads/master'
+        if: github.repository == 'kyngs/LibreLogin' && github.ref == 'refs/heads/main'
         run: |
           git clone https://github.com/kyngs/LibreLogin.wiki.git wiki
           cd wiki
