@@ -18,6 +18,7 @@ import xyz.kyngs.librelogin.common.command.InvalidCommandArgument;
 import xyz.kyngs.librelogin.common.database.AuthenticUser;
 import xyz.kyngs.librelogin.common.event.events.AuthenticPasswordChangeEvent;
 import xyz.kyngs.librelogin.common.event.events.AuthenticPremiumLoginSwitchEvent;
+import xyz.kyngs.librelogin.common.server.AuthenticServerHandler;
 import xyz.kyngs.librelogin.common.util.GeneralUtil;
 
 import java.io.File;
@@ -161,6 +162,11 @@ public class TemsLoginCommand<P> extends StaffCommand<P> {
 
             try {
                 plugin.getConfiguration().reload(plugin);
+
+                var serverHandler = plugin.getServerHandler();
+                if (serverHandler instanceof AuthenticServerHandler<?, ?> authenticServerHandler) {
+                    authenticServerHandler.reloadServers();
+                }
             } catch (IOException e) {
                 e.printStackTrace();
                 throw new InvalidCommandArgument(getMessage("error-unknown"));
@@ -506,7 +512,7 @@ public class TemsLoginCommand<P> extends StaffCommand<P> {
             for (var alt : alts) {
                 audience.sendMessage(getMessage("info-alts-entry",
                         "%name%", alt.getLastNickname(),
-                        "%last_seen%", DATE_TIME_FORMATTER.format(user.getLastSeen().toLocalDateTime())
+                        "%last_seen%", DATE_TIME_FORMATTER.format(alt.getLastSeen().toLocalDateTime())
                 ));
             }
         });

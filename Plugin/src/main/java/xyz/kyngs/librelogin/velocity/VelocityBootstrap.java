@@ -18,6 +18,7 @@ import com.velocitypowered.api.plugin.PluginDescription;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
+import net.kyori.adventure.text.Component;
 import org.slf4j.Logger;
 import xyz.kyngs.librarian.VelocityLibraryManager;
 import xyz.kyngs.librelogin.BuildParameters;
@@ -49,18 +50,22 @@ public class VelocityBootstrap implements LibreLoginProvider<Player, RegisteredS
     PluginDescription pluginDescription;
 
     ProxyServer server;
+    private final Logger logger;
     private final VelocityLibreLogin libreLogin;
 
     @Inject
     public VelocityBootstrap(ProxyServer server, Injector injector, Logger logger, PluginContainer container) {
         this.server = server;
+        this.logger = logger;
 
         // Refuse to start on unsupported proxies instead of enabling with an incompatible API.
         var proxyVersion = server.getVersion().getVersion();
 
         if (!VelocityRequirements.isSupported(proxyVersion)) {
-            throw new IllegalStateException("TemsLogin requires Velocity " + VelocityRequirements.SUPPORTED_VERSION
-                    + ", but this proxy reports " + proxyVersion + ". TemsLogin will not be enabled.");
+            var message = "TemsLogin requires Velocity " + VelocityRequirements.SUPPORTED_VERSION
+                    + ", but this proxy reports " + proxyVersion + ". TemsLogin will not be enabled.";
+            failClosed(message, null);
+            throw new IllegalStateException(message);
         }
 
         logger.info("Loading libraries...");
@@ -96,6 +101,9 @@ public class VelocityBootstrap implements LibreLoginProvider<Player, RegisteredS
             });
 
             libraryManager.configureFromJSON();
+        } catch (Throwable t) {
+            failClosed("TemsLogin failed to load its libraries, shutting down the proxy to avoid running without authentication.", t);
+            throw t instanceof RuntimeException runtime ? runtime : new IllegalStateException("Failed to load TemsLogin libraries", t);
         } finally {
             libraryExecutor.shutdown();
         }
@@ -106,10 +114,35 @@ public class VelocityBootstrap implements LibreLoginProvider<Player, RegisteredS
 
     @Subscribe
     public void onInitialization(ProxyInitializeEvent event) {
-        libreLogin.enable();
+        try {
+            libreLogin.enable();
 
-        server.getEventManager().register(this, new Blockers(libreLogin.getAuthorizationProvider(), libreLogin.getConfiguration(), libreLogin.getMessages()));
-        server.getEventManager().register(this, new VelocityListeners(libreLogin));
+            server.getEventManager().register(this, new Blockers(libreLogin.getAuthorizationProvider(), libreLogin.getConfiguration(), libreLogin.getMessages()));
+            server.getEventManager().register(this, new VelocityListeners(libreLogin));
+        } catch (Throwable t) {
+            // Never leave an authentication proxy running without its listeners: the backends are in
+            // offline mode and would accept any username.
+            try {
+                libreLogin.disable();
+            } catch (Throwable ignored) {
+                // The plugin is already in a broken state, the shutdown below is what matters.
+            }
+            failClosed("TemsLogin failed to initialize, shutting down the proxy to avoid running without authentication.", t);
+        }
+    }
+
+    private void failClosed(String message, Throwable throwable) {
+        if (throwable == null) {
+            logger.error(message);
+        } else {
+            logger.error(message, throwable);
+        }
+
+        try {
+            server.shutdown(Component.text(message));
+        } catch (Throwable shutdownFailure) {
+            logger.error("Could not shut down the proxy after a TemsLogin initialization failure", shutdownFailure);
+        }
     }
 
     @Override

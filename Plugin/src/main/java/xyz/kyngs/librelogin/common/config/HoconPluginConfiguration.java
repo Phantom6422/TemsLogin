@@ -25,6 +25,7 @@ public class HoconPluginConfiguration {
     private final Logger logger;
     private final Collection<BiHolder<Class<?>, String>> defaultKeys;
     private ConfigurateHelper helper;
+    private ConfigurateConfiguration rawConfiguration;
 
     public HoconPluginConfiguration(Logger logger, Collection<BiHolder<Class<?>, String>> defaultKeys) {
         this.logger = logger;
@@ -71,8 +72,18 @@ public class HoconPluginConfiguration {
         }
 
         helper = helperAdept;
+        rawConfiguration = adept;
 
         return adept.isNewlyCreated();
+    }
+
+    /**
+     * Persists the current configuration back to {@code config.conf}.
+     *
+     * @throws IOException if the file cannot be written
+     */
+    public void save() throws IOException {
+        rawConfiguration.save();
     }
 
     public NewUUIDCreator getNewUUIDCreator() {

@@ -51,7 +51,7 @@ alt="Documentation on the upstream LibreLogin wiki"></img>
 
 - You need to secure your limbo servers
 - Velocity **4.x** is required (4.0.0 or newer, currently tested with 4.3.2-SNAPSHOT). TemsLogin refuses to
-  start on other major versions.
+  start on other major versions and shuts the proxy down instead of leaving it running without authentication.
 
 ## Platforms
 
@@ -97,7 +97,7 @@ Migration is automatic on the first start:
 ```
 
 The compiled jar will be available in `Plugin/build/libs/TemsLogin-<version>.jar`, for example
-`TemsLogin-0.29.1.jar`.
+`TemsLogin-0.29.2.jar`.
 
 ## Special thanks
 

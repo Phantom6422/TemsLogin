@@ -45,5 +45,6 @@ class VelocityRequirementsTest {
         assertFalse(VelocityRequirements.isSupported(null));
         assertFalse(VelocityRequirements.isSupported(""));
         assertFalse(VelocityRequirements.isSupported("SNAPSHOT"));
+        assertFalse(VelocityRequirements.isSupported("999999999999999999999.0.0"));
     }
 }

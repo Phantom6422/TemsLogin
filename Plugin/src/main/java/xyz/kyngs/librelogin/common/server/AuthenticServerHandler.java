@@ -55,10 +55,34 @@ public class AuthenticServerHandler<P, S> implements ServerHandler<P, S> {
 
         plugin.repeatPersistently(() -> pingCache.refreshAll(pingCache.asMap().keySet()), 10000, 10000);
 
-        var handle = plugin.getPlatformHandle();
-
         if (plugin.getConfiguration().get(ConfigurationKeys.PING_SERVERS))
             plugin.getLogger().info("Pinging servers...");
+
+        loadServers();
+
+        plugin.getLogger().debug("List of registered servers: ");
+
+
+        for (S server : plugin.getPlatformHandle().getServers()) {
+            plugin.getLogger().debug("Server: " + plugin.getPlatformHandle().getServerName(server) + " | " + server);
+        }
+
+        if (plugin.getConfiguration().get(ConfigurationKeys.PING_SERVERS)) plugin.getLogger().info("Pinged servers...");
+    }
+
+    /**
+     * Rebuilds the limbo and lobby routing from the current configuration. Called after a configuration
+     * reload so that changed {@code limbo}/{@code lobby} lists take effect without a proxy restart.
+     */
+    public void reloadServers() {
+        limboServers.clear();
+        lobbyServers.clear();
+        pingCache.invalidateAll();
+        loadServers();
+    }
+
+    private void loadServers() {
+        var handle = plugin.getPlatformHandle();
 
         for (String limbo : plugin.getConfiguration().get(LIMBO)) {
             var server = handle.getServer(limbo, true);
@@ -77,15 +101,6 @@ public class AuthenticServerHandler<P, S> implements ServerHandler<P, S> {
                 plugin.getLogger().warn("Lobby server/world " + server + " not found!");
             }
         });
-
-        plugin.getLogger().debug("List of registered servers: ");
-
-
-        for (S server : plugin.getPlatformHandle().getServers()) {
-            plugin.getLogger().debug("Server: " + plugin.getPlatformHandle().getServerName(server) + " | " + server);
-        }
-
-        if (plugin.getConfiguration().get(ConfigurationKeys.PING_SERVERS)) plugin.getLogger().info("Pinged servers...");
     }
 
     @Override

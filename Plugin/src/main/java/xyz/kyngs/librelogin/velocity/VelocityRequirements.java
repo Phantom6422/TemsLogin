@@ -49,6 +49,11 @@ final class VelocityRequirements {
             return false;
         }
 
-        return Integer.parseInt(matcher.group(1)) == SUPPORTED_MAJOR;
+        try {
+            return Integer.parseInt(matcher.group(1)) == SUPPORTED_MAJOR;
+        } catch (NumberFormatException ignored) {
+            // A component that does not fit into an int can never be a supported release.
+            return false;
+        }
     }
 }

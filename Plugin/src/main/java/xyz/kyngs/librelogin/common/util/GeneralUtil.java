@@ -157,7 +157,16 @@ public class GeneralUtil {
 
                     plugin.migrate(provider, plugin.getDatabaseProvider());
 
-                    logger.info("Migration complete, cleaning up!");
+                    // Do not repeat the import on every restart. The old database may be gone or already
+                    // contain data, and PostgreSQL would fail on duplicate rows.
+                    configuration.getHelper().set(ConfigurationKeys.MIGRATION_ON_NEXT_STARTUP, false);
+
+                    try {
+                        configuration.save();
+                        logger.info("Migration complete, cleaning up!");
+                    } catch (IOException e) {
+                        logger.warn("Migration succeeded, but config.conf could not be saved. Set migration.on-next-startup to false manually.");
+                    }
 
                 } finally {
                     if (connector != null) connector.disconnect();

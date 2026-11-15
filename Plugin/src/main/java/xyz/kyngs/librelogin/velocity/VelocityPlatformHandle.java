@@ -44,8 +44,9 @@ public class VelocityPlatformHandle implements PlatformHandle<Player, Registered
                 var result = player.createConnectionRequest(to).connect().get();
                 var reason = result.getReasonComponent();
                 return result.isSuccessful() ? null : reason.map(component -> new RuntimeException("Failed to move player: " + Component.empty().append(component).content())).orElseGet(() -> new RuntimeException("Failed to move player"));
-            } catch (InterruptedException ignored) {
-                return null;
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return e;
             } catch (ExecutionException e) {
                 return e.getCause();
             }
@@ -89,7 +90,11 @@ public class VelocityPlatformHandle implements PlatformHandle<Player, Registered
 
             return players.map(value -> new ServerPing(value.getMax() == -1 ? Integer.MAX_VALUE : value.getMax())).orElse(null);
 
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            plugin.getLogger().debug("Failed to ping server " + e.getMessage());
+            return null;
+        } catch (ExecutionException e) {
             plugin.getLogger().debug("Failed to ping server " + e.getMessage());
             return null;
         }

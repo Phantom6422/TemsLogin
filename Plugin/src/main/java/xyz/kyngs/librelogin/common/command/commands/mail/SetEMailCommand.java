@@ -37,6 +37,8 @@ public class SetEMailCommand<P> extends EMailCommand<P> {
         return runAsync(() -> {
             var user = getUser(player);
 
+            if (!user.isRegistered()) throw new InvalidCommandArgument(getMessage("error-no-password"));
+
             var hashed = user.getHashedPassword();
             var crypto = getCrypto(hashed);
 

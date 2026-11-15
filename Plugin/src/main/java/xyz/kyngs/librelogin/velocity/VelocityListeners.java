@@ -79,7 +79,14 @@ public class VelocityListeners extends AuthenticListeners<VelocityLibreLogin, Pl
 
     @Subscribe(priority = -32767)
     public void onPostLogin(PostLoginEvent event) {
-        onPostLogin(event.getPlayer(), null);
+        try {
+            onPostLogin(event.getPlayer(), null);
+        } catch (Throwable t) {
+            // Do not leave a half-initialized player online: authorization is default-allow, so a failed
+            // session setup would otherwise let them chat, run commands and leave limbo.
+            plugin.getLogger().error("Failed to initialize the login session for " + event.getPlayer().getUsername(), t);
+            event.getPlayer().disconnect(Component.text("Internal authentication error, please try again later."));
+        }
     }
 
     @Subscribe
@@ -149,13 +156,21 @@ public class VelocityListeners extends AuthenticListeners<VelocityLibreLogin, Pl
 
     @Subscribe(priority = -32767)
     public void chooseServer(PlayerChooseInitialServerEvent event) {
-        var server = chooseServer(event.getPlayer(), null, null);
+        try {
+            var server = chooseServer(event.getPlayer(), null, null);
 
-        if (server.value() == null) {
-            event.getPlayer().disconnect(plugin.getMessages().getMessage("kick-no-" + (server.key() ? "lobby" : "limbo")));
+            if (server.value() == null) {
+                event.setInitialServer(null);
+                event.getPlayer().disconnect(plugin.getMessages().getMessage("kick-no-" + (server.key() ? "lobby" : "limbo")));
+            } else {
+                event.setInitialServer(server.value());
+            }
+        } catch (Throwable t) {
+            // A thrown handler is ignored by Velocity, which would leave the default lobby as the initial
+            // server. Fail closed instead of sending an unauthenticated player to a backend.
+            plugin.getLogger().error("Failed to choose an initial server for " + event.getPlayer().getUsername(), t);
             event.setInitialServer(null);
-        } else {
-            event.setInitialServer(server.value());
+            event.getPlayer().disconnect(plugin.getMessages().getMessage("kick-no-limbo"));
         }
 
     }

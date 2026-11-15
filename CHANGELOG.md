@@ -1,3 +1,16 @@
+0.29.2 - Security and reliability fixes
+
+- Fail closed when TemsLogin cannot load or enable instead of leaving the proxy running without authentication
+- Mark players unauthenticated before any PostLogin database access, and disconnect them if session setup fails
+- Disconnect instead of falling back to the default lobby when initial-server selection fails
+- Refuse login when an account has 2FA enabled but the proxy has no TOTP provider (for example when Protocolize is missing)
+- Fix a null dereference when a lobby connection request completes exceptionally
+- Do not register a NanoLimbo server whose start failed
+- Rebuild limbo/lobby routing after a configuration reload
+- Disable database migration after it succeeds so it is not repeated on every restart
+- Fix a null dereference in /setemail for password-less accounts and the wrong last-seen value in /temslogin user alts
+- Reject unparseable proxy version strings instead of throwing a NumberFormatException
+
 0.29.1 - Velocity 4.x support
 
 - Support the whole Velocity 4.x line (4.0.0+) instead of requiring 4.3.0

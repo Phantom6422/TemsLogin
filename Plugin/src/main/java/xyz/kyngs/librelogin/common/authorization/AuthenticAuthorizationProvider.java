@@ -143,6 +143,17 @@ public class AuthenticAuthorizationProvider<P, S> extends AuthenticHandler<P, S>
         twoFactorLimiter.reset(uuid);
     }
 
+    /**
+     * Marks the player as unauthenticated before any database or platform work happens. Authorization is
+     * default-allow, so this closes the window where a failing lookup would otherwise leave the player
+     * able to chat, run commands or leave limbo without logging in.
+     *
+     * @param player the player to mark
+     */
+    public void markUnauthorized(P player) {
+        unAuthorized.put(player, false);
+    }
+
     public void startTracking(User user, P player) {
         var audience = platformHandle.getAudienceForPlayer(player);
 

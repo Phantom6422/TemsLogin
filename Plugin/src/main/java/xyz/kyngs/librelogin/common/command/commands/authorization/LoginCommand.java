@@ -12,6 +12,7 @@ import xyz.kyngs.librelogin.api.event.events.AuthenticatedEvent;
 import xyz.kyngs.librelogin.api.event.events.WrongPasswordEvent.AuthenticationSource;
 import xyz.kyngs.librelogin.common.AuthenticLibreLogin;
 import xyz.kyngs.librelogin.common.command.InvalidCommandArgument;
+import xyz.kyngs.librelogin.common.config.ConfigurationKeys;
 import xyz.kyngs.librelogin.common.event.events.AuthenticWrongPasswordEvent;
 
 import java.util.concurrent.CompletionStage;
@@ -51,7 +52,13 @@ public class LoginCommand<P> extends AuthorizationCommand<P> {
             if (secret != null) {
                 var totp = plugin.getTOTPProvider();
 
-                if (totp != null) {
+                if (totp == null) {
+                    // Never silently skip a second factor that the account has enabled. A null provider
+                    // usually means Protocolize is missing or incompatible even though TOTP is enabled.
+                    if (plugin.getConfiguration().get(ConfigurationKeys.TOTP_ENABLED)) {
+                        throw new InvalidCommandArgument(getMessage("totp-unavailable"));
+                    }
+                } else {
                     if (code == null) throw new InvalidCommandArgument(getMessage("totp-not-provided"));
 
                     int parsedCode;

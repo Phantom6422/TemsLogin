@@ -38,6 +38,13 @@ public class VelocityNanoLimboIntegration extends NanoLimboIntegration<Registere
             server.start();
         } catch (Exception e) {
             e.printStackTrace();
+            try {
+                server.stop();
+            } catch (Exception ignored) {
+                // The server never started, stopping it is only best-effort cleanup.
+            }
+            // Do not register a dead endpoint: routing players to a port with nothing listening kicks them.
+            return null;
         }
         return proxyServer.registerServer(new ServerInfo(serverName, address));
     }

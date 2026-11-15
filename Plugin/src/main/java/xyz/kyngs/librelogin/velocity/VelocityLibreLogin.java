@@ -110,9 +110,9 @@ public class VelocityLibreLogin extends AuthenticLibreLogin<Player, RegisteredSe
                     .connect()
                     .whenComplete((result, throwable) -> {
                         if (player.getCurrentServer().isEmpty()) return;
-                        if (player.getCurrentServer().get().getServerInfo().getName().equals(result.getAttemptedConnection().getServerInfo().getName()))
+                        if (result != null && player.getCurrentServer().get().getServerInfo().getName().equals(result.getAttemptedConnection().getServerInfo().getName()))
                             return;
-                        if (throwable != null || !result.isSuccessful())
+                        if (throwable != null || result == null || !result.isSuccessful())
                             player.disconnect(Component.text("Unable to connect"));
                     });
         } catch (EventCancelledException ignored) {}

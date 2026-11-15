@@ -247,6 +247,13 @@ public class MessageKeys {
             ConfigurateHelper::getString
     );
 
+    public static final ConfigurationKey<String> TOTP_UNAVAILABLE = new ConfigurationKey<>(
+            "totp-unavailable",
+            "Two-factor authentication is enabled for this account, but this proxy cannot verify 2FA codes. Please contact an administrator.",
+            "This message is displayed when the player has 2FA enabled but the proxy has no TOTP provider, for example because Protocolize is missing.",
+            ConfigurateHelper::getString
+    );
+
     public static final ConfigurationKey<String> TOTP_NOT_AWAITING = new ConfigurationKey<>(
             "totp-not-awaiting",
             "You are currently not in the process of enabling 2FA! Please type /2fa to begin the process.",
