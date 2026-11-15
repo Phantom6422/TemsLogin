@@ -1,124 +1,54 @@
 # TemsLogin
 
-TemsLogin is an authentication plugin for cracked and premium Minecraft servers with hybrid (mixed) logins,
-built for Velocity 4.x proxies.
+Authentication plugin for cracked and premium Minecraft servers with hybrid logins, built for Velocity 4.x.
 
-> **Note:** This plugin is originally forked from [kyngs/LibreLogin](https://github.com/kyngs/LibreLogin) by
-> [kyngs](https://github.com/kyngs). This fork is only for [PhantomsNetwork](https://phantomsnetwork.org) internal
-> use, so we do not provide support for others.
-
->[!WARNING]
-> **This plugin is heavily modified using AI / "vibe coding" methods.**
->
-> Large parts of this repository — including the Velocity 4.x support, the authentication and session handling,
-> the security and networking hardening, the LibreLogin migration logic and this documentation — were produced
-> with an AI coding agent under human direction and review.
->
-> It is tested by building and by targeted unit-style checks, but it has **not** been battle-tested on a live
-> network. Read the diff, test on a staging proxy/server, and keep a rollback jar before running it in
-> production. Treat every change in here as "review before trusting".
-
-## Quick information
-
-<img src="https://img.shields.io/badge/Java%20version-%2025+-blue?style=for-the-badge&logo=java&logoColor=white"
-alt="Plugin requires Java 25 or newer"></img>
+TemsLogin is a fork of [LibreLogin](https://github.com/kyngs/LibreLogin) by [kyngs](https://github.com/kyngs),
+maintained for [PhantomsNetwork](https://phantomsnetwork.org). This is an internal fork; no external support is provided.
 
 ## Download
 
 [![Latest release](https://img.shields.io/github/v/release/Phantom6422/TemsLogin?style=for-the-badge)](https://github.com/Phantom6422/TemsLogin/releases/latest)
 
-Download the latest jar from the **[Releases page](https://github.com/Phantom6422/TemsLogin/releases/latest)**.
-Only the latest release is published on GitHub; older versions remain available as git tags and in the
-[changelog](CHANGELOG.md).
+Download the latest jar from the [Releases page](https://github.com/Phantom6422/TemsLogin/releases/latest).
+Only the latest release is published; older versions remain available as git tags.
+
+## Requirements
+
+- Velocity 4.x (4.0.0 or newer)
+- Java 25 or newer
+- Backend servers in offline mode with Velocity forwarding enabled
+- A secured limbo server
+
+Paper, Spigot, Bukkit and BungeeCord are not supported.
+
+## Features
+
+- Premium autologin and hybrid cracked/premium accounts
+- Password registration and login
+- Session system
+- TOTP 2FA
+- Floodgate (Geyser) support
+- Automatic LibreLogin data migration
 
 ## Documentation
 
-TemsLogin is a fork of LibreLogin, so the **[LibreLogin wiki](https://github.com/kyngs/LibreLogin/wiki)** is the
-documentation for this plugin. Configuration keys, messages and behaviour are the same, with these differences:
+Configuration and messages are documented on the
+[LibreLogin wiki](https://github.com/kyngs/LibreLogin/wiki). Differences in this fork:
 
-- the command is `/temslogin` (`/librelogin` still works as an alias),
-- permissions are under `temslogin.*` instead of `librelogin.*` / `librepremium.*`,
-- the data folder is `plugins/temslogin`.
+- command: `/temslogin` (`/librelogin` is an alias)
+- permissions: `temslogin.*` (`temslogin.admin` grants all)
+- data folder: `plugins/temslogin`
 
-<a href="https://github.com/kyngs/LibreLogin/wiki">
-<img src="https://img.shields.io/badge/Documentation-LibreLogin%20Wiki-555555?style=for-the-badge&logo=wikipedia"
-alt="Documentation on the upstream LibreLogin wiki"></img>
-</a>
-
-## Basic set of features
-
-- AutoLogin for premium players
-- TOTP 2FA (Authy, Google Authenticator...) [details](https://github.com/kyngs/LibreLogin/wiki/2FA)
-- Session system
-- Name validation (including case sensitivity check)
-- Automatic data migration for premium players
-- Migration of a player's data by using one command
-- Geyser (Bedrock) support using [Floodgate](https://github.com/kyngs/LibreLogin/wiki/Floodgate)
-
-## Considerations
-
-- You need to secure your limbo servers
-- Velocity **4.x** is required (4.0.0 or newer, currently tested with 4.3.2-SNAPSHOT). TemsLogin refuses to
-  start on other major versions and shuts the proxy down instead of leaving it running without authentication.
-
-## Platforms
-
-- [x] Velocity (4.x, tested with 4.3.2-SNAPSHOT)
-
-Paper, Spigot, Bukkit and BungeeCord are no longer supported. TemsLogin is a proxy-side authentication
-plugin; backend servers must run in offline mode and accept Velocity forwarding.
-
-## Commands and permissions
-
-The main administrative command is `/temslogin` (`/librelogin` is kept as an alias). Every administrative
-permission now lives under `temslogin.*`, for example `temslogin.user.info` or `temslogin.reload.configuration`.
-`temslogin.admin` grants all of them.
-
-Permissions used by older versions (`librelogin.*` and `librepremium.*`) are no longer checked, so update your
-LuckPerms groups after upgrading, for example:
-
-```bash
-/lp group admin permission set temslogin.admin true
-```
-
-## Migrating from LibreLogin
-
-Migration is automatic on the first start:
-
-- If `plugins/temslogin` does not exist, the old folder (`plugins/librelogin`, `plugins/librepremium`,
-  `plugins/LibreLogin` or `plugins/LibrePremium`) is renamed, which moves configuration, messages and the
-  SQLite database in one go.
-- If `plugins/temslogin` already exists, missing files are copied from the legacy folder instead:
-  `config.conf`, `messages.conf`, `forbidden-passwords.txt` and any SQLite `*.db` files. Existing files are
-  never overwritten, so your current TemsLogin configuration always wins.
-- The configuration and messages revision numbers are upgraded by the built-in migrators on load, exactly as
-  a normal plugin update would.
-- The database schema and table name (`librepremium_data`) are intentionally unchanged, so an existing database
-  keeps working. MySQL/PostgreSQL users just keep pointing at the same database in the imported `config.conf`.
-- bStats telemetry is not bundled in this fork.
-
-## Building from Source
+## Building
 
 ```bash
 # Requires Java 25 or newer
 ./gradlew shadowJar
 ```
 
-The compiled jar will be available in `Plugin/build/libs/TemsLogin-<version>.jar`.
-
-## Special thanks
-
-- [kyngs](https://github.com/kyngs) - author of [LibreLogin](https://github.com/kyngs/LibreLogin), which this plugin is based on
-- [Raixo](https://github.com/RAIXOCZ) - for developing the original bungeecord port
-- [Fejby](https://github.com/Fejby) - for providing Floodgate test server and helping with testing
+The jar is written to `Plugin/build/libs/TemsLogin-<version>.jar`.
 
 ## License
 
-TemsLogin is a derivative work of LibreLogin and is licensed under the Mozilla Public License 2.0.
-The original copyright notices and license headers are kept in every source file.
-
-- [License text](LICENSE)
-- Upstream project: [kyngs/LibreLogin](https://github.com/kyngs/LibreLogin)
-
-Modifications made by this fork are also available under the MPL-2.0. If you distribute a modified version,
-you must keep the license and make the source of the modified files available, as required by the MPL-2.0.
+Licensed under the [Mozilla Public License 2.0](LICENSE). TemsLogin is a derivative work of LibreLogin;
+see [NOTICE.md](NOTICE.md) for attribution.
