@@ -33,6 +33,11 @@ public class AuthenticServerHandler<P, S> implements ServerHandler<P, S> {
     private final AuthenticLibreLogin<P, S> plugin;
     private final Collection<S> limboServers;
     private final Multimap<String, S> lobbyServers;
+    /**
+     * Guards the routing collections. Configuration reloads mutate them while login threads read
+     * them, so readers take a snapshot and mutations hold this lock.
+     */
+    private final Object serverLock = new Object();
 
     public AuthenticServerHandler(AuthenticLibreLogin<P, S> plugin) {
         this.plugin = plugin;
@@ -75,19 +80,33 @@ public class AuthenticServerHandler<P, S> implements ServerHandler<P, S> {
      * reload so that changed {@code limbo}/{@code lobby} lists take effect without a proxy restart.
      */
     public void reloadServers() {
-        limboServers.clear();
-        lobbyServers.clear();
-        pingCache.invalidateAll();
-        loadServers();
+        var newLimbo = new ArrayList<S>();
+        var newLobby = HashMultimap.<String, S>create();
+
+        // Build outside the lock: pinging servers can take a while and must not block logins.
+        loadServers(newLimbo, newLobby);
+
+        synchronized (serverLock) {
+            limboServers.clear();
+            limboServers.addAll(newLimbo);
+            lobbyServers.clear();
+            lobbyServers.putAll(newLobby);
+            pingCache.invalidateAll();
+        }
     }
 
     private void loadServers() {
+        loadServers(limboServers, lobbyServers);
+    }
+
+    private void loadServers(Collection<S> limboTarget, Multimap<String, S> lobbyTarget) {
         var handle = plugin.getPlatformHandle();
 
         for (String limbo : plugin.getConfiguration().get(LIMBO)) {
             var server = handle.getServer(limbo, true);
             if (server != null) {
-                registerLimboServer(server);
+                getLatestPing(server);
+                limboTarget.add(server);
             } else {
                 plugin.getLogger().warn("Limbo server/world " + limbo + " not found!");
             }
@@ -96,7 +115,8 @@ public class AuthenticServerHandler<P, S> implements ServerHandler<P, S> {
         plugin.getConfiguration().get(ConfigurationKeys.LOBBY).forEach((forced, server) -> {
             var s = handle.getServer(server, false);
             if (s != null) {
-                registerLobbyServer(s, forced);
+                getLatestPing(s);
+                lobbyTarget.put(forced, s);
             } else {
                 plugin.getLogger().warn("Lobby server/world " + server + " not found!");
             }
@@ -140,9 +160,10 @@ public class AuthenticServerHandler<P, S> implements ServerHandler<P, S> {
 
         plugin.getLogger().debug("Virtual host for player " + plugin.getPlatformHandle().getUsernameForPlayer(player) + ": " + virtual);
 
-        var servers = virtual == null ? lobbyServers.get("root") : lobbyServers.get(virtual);
+        var serversByHost = getLobbyServers();
+        var servers = virtual == null ? serversByHost.get("root") : serversByHost.get(virtual);
 
-        if (servers.isEmpty()) servers = lobbyServers.get("root");
+        if (servers.isEmpty()) servers = serversByHost.get("root");
 
         return servers.stream()
                 .filter(server -> {
@@ -167,7 +188,7 @@ public class AuthenticServerHandler<P, S> implements ServerHandler<P, S> {
 
         if (event.getServer() != null) return event.getServer();
 
-        return limboServers.stream()
+        return getLimboServers().stream()
                 .filter(server -> {
                     var ping = getLatestPing(server);
 
@@ -179,23 +200,31 @@ public class AuthenticServerHandler<P, S> implements ServerHandler<P, S> {
 
     @Override
     public Multimap<String, S> getLobbyServers() {
-        return lobbyServers;
+        synchronized (serverLock) {
+            return HashMultimap.create(lobbyServers);
+        }
     }
 
     @Override
     public Collection<S> getLimboServers() {
-        return limboServers;
+        synchronized (serverLock) {
+            return new ArrayList<>(limboServers);
+        }
     }
 
     @Override
     public void registerLobbyServer(S server, String forcedHost) {
         getLatestPing(server);
-        lobbyServers.put(forcedHost, server);
+        synchronized (serverLock) {
+            lobbyServers.put(forcedHost, server);
+        }
     }
 
     @Override
     public void registerLimboServer(S server) {
         getLatestPing(server);
-        limboServers.add(server);
+        synchronized (serverLock) {
+            limboServers.add(server);
+        }
     }
 }

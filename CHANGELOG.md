@@ -1,3 +1,7 @@
+0.29.3 - Reload concurrency fix
+
+- Make limbo/lobby routing reload thread-safe so a configuration reload cannot race with logins
+
 0.29.2 - Security and reliability fixes
 
 - Fail closed when TemsLogin cannot load or enable instead of leaving the proxy running without authentication
