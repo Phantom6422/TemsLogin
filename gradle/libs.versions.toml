@@ -1,6 +1,6 @@
 [versions]
 adventure = "5.2.0"
-velocity = "4.3.2-SNAPSHOT"
+velocity = "4.0.0"
 acf = "7d5bf7cac0"
 librarian = "2.0.0-SNAPSHOT"
 junit = "5.9.1"

@@ -1,7 +1,7 @@
 # TemsLogin
 
 TemsLogin is an authentication plugin for cracked and premium Minecraft servers with hybrid (mixed) logins,
-built for Velocity 4.3.0+ proxies.
+built for Velocity 4.x proxies.
 
 > **Note:** This plugin is originally forked from [kyngs/LibreLogin](https://github.com/kyngs/LibreLogin) by
 > [kyngs](https://github.com/kyngs). This fork is only for [PhantomsNetwork](https://phantomsnetwork.org) internal
@@ -50,11 +50,12 @@ alt="Documentation on the upstream LibreLogin wiki"></img>
 ## Considerations
 
 - You need to secure your limbo servers
-- Velocity **4.3.0 or newer** is required. TemsLogin refuses to start on older proxies.
+- Velocity **4.x** is required (4.0.0 or newer, currently tested with 4.3.2-SNAPSHOT). TemsLogin refuses to
+  start on other major versions.
 
 ## Platforms
 
-- [x] Velocity (4.3.0+, tested with 4.3.2-SNAPSHOT)
+- [x] Velocity (4.x, tested with 4.3.2-SNAPSHOT)
 
 Paper, Spigot, Bukkit and BungeeCord are no longer supported. TemsLogin is a proxy-side authentication
 plugin; backend servers must run in offline mode and accept Velocity forwarding.
@@ -96,7 +97,7 @@ Migration is automatic on the first start:
 ```
 
 The compiled jar will be available in `Plugin/build/libs/TemsLogin-<version>.jar`, for example
-`TemsLogin-0.29.0.jar`.
+`TemsLogin-0.29.1.jar`.
 
 ## Special thanks
 

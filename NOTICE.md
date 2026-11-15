@@ -17,7 +17,7 @@ This project is a modified fork of **LibreLogin**, originally created by **kyngs
 ## Changes made by this fork
 
 - Rebranded the plugin to TemsLogin (plugin id, data folder, commands, permissions, messages and build output).
-- Supports Velocity 4.3.0+ only; the Paper, Spigot, Bukkit and BungeeCord platform layers were removed.
+- Supports Velocity 4.x only; the Paper, Spigot, Bukkit and BungeeCord platform layers were removed.
 - Fixed security issues in 2FA handling, crypto comparisons and SMTP TLS handling.
 - Disabled upstream telemetry, update checks now target this fork.
 

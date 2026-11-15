@@ -9,28 +9,27 @@ package xyz.kyngs.librelogin.velocity;
 import java.util.regex.Pattern;
 
 /**
- * Checks whether the running proxy satisfies the minimum Velocity version required by TemsLogin.
+ * Checks whether the running proxy is a supported Velocity 4.x release.
  * <p>
- * The API is built against Velocity 4.3.x, so older proxies are rejected before any plugin state is
- * initialised instead of failing later with a {@link NoSuchMethodError} or a partial enable.
+ * TemsLogin is built against the Velocity 4.0.0 API and supports the whole 4.x line. Older 3.x
+ * proxies and untested future majors are rejected before any plugin state is initialised instead
+ * of failing later with a {@link NoSuchMethodError} or a partial enable.
  */
 final class VelocityRequirements {
 
     /**
-     * The oldest Velocity version this fork supports.
+     * Human-readable description of the supported proxy line.
      */
-    static final String MINIMUM_VERSION = "4.3.0";
+    static final String SUPPORTED_VERSION = "4.x (4.0.0 or newer)";
 
     private static final Pattern VERSION_PATTERN = Pattern.compile("(\\d+)\\.(\\d+)(?:\\.(\\d+))?");
-    private static final int MINIMUM_MAJOR = 4;
-    private static final int MINIMUM_MINOR = 3;
-    private static final int MINIMUM_PATCH = 0;
+    private static final int SUPPORTED_MAJOR = 4;
 
     private VelocityRequirements() {
     }
 
     /**
-     * Returns whether the given proxy version string is at least {@link #MINIMUM_VERSION}.
+     * Returns whether the given proxy version string is a supported Velocity 4.x release.
      * <p>
      * Velocity reports versions such as {@code 4.3.2-SNAPSHOT} or {@code 4.3.2-SNAPSHOT-48}. Only the
      * numeric {@code major.minor.patch} part is compared, so pre-release and build suffixes never make
@@ -50,16 +49,6 @@ final class VelocityRequirements {
             return false;
         }
 
-        var major = Integer.parseInt(matcher.group(1));
-        var minor = Integer.parseInt(matcher.group(2));
-        var patch = matcher.group(3) == null ? 0 : Integer.parseInt(matcher.group(3));
-
-        if (major != MINIMUM_MAJOR) {
-            return major > MINIMUM_MAJOR;
-        }
-        if (minor != MINIMUM_MINOR) {
-            return minor > MINIMUM_MINOR;
-        }
-        return patch >= MINIMUM_PATCH;
+        return Integer.parseInt(matcher.group(1)) == SUPPORTED_MAJOR;
     }
 }

@@ -1,3 +1,10 @@
+0.29.1 - Velocity 4.x support
+
+- Support the whole Velocity 4.x line (4.0.0+) instead of requiring 4.3.0
+- Build against the Velocity 4.0.0 API so the plugin stays compatible with older 4.x proxies
+- Reject Velocity 3.x and 5.x at startup
+- Add unit tests for the supported-version check
+
 0.29.0 - Velocity-only
 
 - Drop Paper, Spigot and Bukkit support, including the PacketEvents protocol layer, the Bukkit/Paper

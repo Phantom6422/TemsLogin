@@ -14,28 +14,30 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class VelocityRequirementsTest {
 
     @Test
-    void acceptsMinimumAndNewerVersions() {
+    void acceptsTheWholeVelocity4Line() {
+        assertTrue(VelocityRequirements.isSupported("4.0.0"));
+        assertTrue(VelocityRequirements.isSupported("4.0.0-SNAPSHOT"));
+        assertTrue(VelocityRequirements.isSupported("4.1.0"));
+        assertTrue(VelocityRequirements.isSupported("4.2.1"));
         assertTrue(VelocityRequirements.isSupported("4.3.0"));
-        assertTrue(VelocityRequirements.isSupported("4.3.0-SNAPSHOT"));
-        assertTrue(VelocityRequirements.isSupported("4.3.2"));
         assertTrue(VelocityRequirements.isSupported("4.3.2-SNAPSHOT"));
         assertTrue(VelocityRequirements.isSupported("4.3.2-SNAPSHOT-48"));
-        assertTrue(VelocityRequirements.isSupported("4.4"));
-        assertTrue(VelocityRequirements.isSupported("5.0.0"));
+        assertTrue(VelocityRequirements.isSupported("4.9.9"));
     }
 
     @Test
-    void rejectsOlderVersions() {
-        assertFalse(VelocityRequirements.isSupported("4.2.1"));
-        assertFalse(VelocityRequirements.isSupported("4.2.1-SNAPSHOT"));
+    void rejectsOtherMajorVersions() {
         assertFalse(VelocityRequirements.isSupported("3.4.0"));
+        assertFalse(VelocityRequirements.isSupported("3.9.9"));
         assertFalse(VelocityRequirements.isSupported("3.x"));
+        assertFalse(VelocityRequirements.isSupported("5.0.0"));
+        assertFalse(VelocityRequirements.isSupported("5.1.0"));
     }
 
     @Test
     void ignoresTextAroundTheVersion() {
         assertTrue(VelocityRequirements.isSupported("Velocity 4.3.0"));
-        assertFalse(VelocityRequirements.isSupported("Velocity 4.2.9"));
+        assertFalse(VelocityRequirements.isSupported("Velocity 3.4.0"));
     }
 
     @Test

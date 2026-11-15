@@ -59,8 +59,8 @@ public class VelocityBootstrap implements LibreLoginProvider<Player, RegisteredS
         var proxyVersion = server.getVersion().getVersion();
 
         if (!VelocityRequirements.isSupported(proxyVersion)) {
-            throw new IllegalStateException("TemsLogin requires Velocity " + VelocityRequirements.MINIMUM_VERSION
-                    + " or newer, but this proxy reports " + proxyVersion + ". TemsLogin will not be enabled.");
+            throw new IllegalStateException("TemsLogin requires Velocity " + VelocityRequirements.SUPPORTED_VERSION
+                    + ", but this proxy reports " + proxyVersion + ". TemsLogin will not be enabled.");
         }
 
         logger.info("Loading libraries...");
