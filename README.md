@@ -23,6 +23,14 @@ built for Velocity 4.x proxies.
 <img src="https://img.shields.io/badge/Java%20version-%2025+-blue?style=for-the-badge&logo=java&logoColor=white"
 alt="Plugin requires Java 25 or newer"></img>
 
+## Download
+
+[![Latest release](https://img.shields.io/github/v/release/Phantom6422/TemsLogin?style=for-the-badge)](https://github.com/Phantom6422/TemsLogin/releases/latest)
+
+Download the latest jar from the **[Releases page](https://github.com/Phantom6422/TemsLogin/releases/latest)**.
+Only the latest release is published on GitHub; older versions remain available as git tags and in the
+[changelog](CHANGELOG.md).
+
 ## Documentation
 
 TemsLogin is a fork of LibreLogin, so the **[LibreLogin wiki](https://github.com/kyngs/LibreLogin/wiki)** is the
@@ -96,8 +104,7 @@ Migration is automatic on the first start:
 ./gradlew shadowJar
 ```
 
-The compiled jar will be available in `Plugin/build/libs/TemsLogin-<version>.jar`, for example
-`TemsLogin-0.29.3.jar`.
+The compiled jar will be available in `Plugin/build/libs/TemsLogin-<version>.jar`.
 
 ## Special thanks
 
