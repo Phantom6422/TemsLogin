@@ -8,5 +8,5 @@ pluginManagement {
 }
 
 rootProject.name = "TemsLogin"
-include("Plugin")
-include("API")
+include("core")
+include("velocity")

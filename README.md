@@ -61,7 +61,7 @@ are documented on the wiki. Permissions use `temslogin.*` (for example `temslogi
 ./gradlew shadowJar
 ```
 
-Requires JDK 25+. The shaded jar is written to `Plugin/build/libs/TemsLogin-<version>.jar`.
+Requires JDK 25+. The shaded jar is written to `velocity/build/libs/TemsLogin-<version>.jar`.
 
 ## Credits
 
@@ -72,4 +72,4 @@ Requires JDK 25+. The shaded jar is written to `Plugin/build/libs/TemsLogin-<ver
 
 ## License
 
-MPL-2.0. See [LICENSE](LICENSE) and [NOTICE.md](NOTICE.md).
+MPL-2.0. See [LICENSE](LICENSE).

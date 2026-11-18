@@ -30,30 +30,30 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: TemsLogin
-          path: Plugin/build/libs/TemsLogin-*.jar
+          path: velocity/build/libs/TemsLogin-*.jar
 
       - name: Setup Velocity environment
         run: |
-          mkdir -p velocity/plugins
-          cp Plugin/build/libs/TemsLogin-*.jar velocity/plugins/
-          curl -sL https://fill-data.papermc.io/v1/objects/01e37982e92f78465c950ef6b5ebe9fd4f94f11a11868c95682b2ee99f7409bb/velocity-4.3.2-SNAPSHOT-48.jar -o velocity/velocity.jar
+          mkdir -p run/plugins
+          cp velocity/build/libs/TemsLogin-*.jar run/plugins/
+          curl -sL https://fill-data.papermc.io/v1/objects/01e37982e92f78465c950ef6b5ebe9fd4f94f11a11868c95682b2ee99f7409bb/velocity-4.3.2-SNAPSHOT-48.jar -o run/velocity.jar
 
       - name: Run Velocity
         run: |
-          cd velocity
+          cd run
           java -jar velocity.jar
 
       - name: Publish with Gradle
         if: github.repository == 'kyngs/LibreLogin' && github.ref == 'refs/heads/main'
-        run: ./gradlew :API:publish -PkyngsRepoUsername=${{ secrets.KYNGS_REPO_TOKEN }} -PkyngsRepoPassword=${{ secrets.KYNGS_REPO_SECRET }}
+        run: ./gradlew :core:publish -PkyngsRepoUsername=${{ secrets.KYNGS_REPO_TOKEN }} -PkyngsRepoPassword=${{ secrets.KYNGS_REPO_SECRET }}
 
       - name: Update Wiki
         if: github.repository == 'kyngs/LibreLogin' && github.ref == 'refs/heads/main'
         run: |
           git clone https://github.com/kyngs/LibreLogin.wiki.git wiki
           cd wiki
-          echo '```hocon' > Config.md && cat ../velocity/plugins/temslogin/config.conf >> Config.md && echo '```' >> Config.md
-          echo '```hocon' > Messages.md && cat ../velocity/plugins/temslogin/messages.conf >> Messages.md && echo '```' >> Messages.md
+          echo '```hocon' > Config.md && cat ../run/plugins/temslogin/config.conf >> Config.md && echo '```' >> Config.md
+          echo '```hocon' > Messages.md && cat ../run/plugins/temslogin/messages.conf >> Messages.md && echo '```' >> Messages.md
           git config --local user.email 'kyngs@users.noreply.github.com'
           git config --local user.name 'Kyngs CI (GitHub Actions)'
           git add .
@@ -65,4 +65,4 @@ jobs:
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        run: ./gradlew :Plugin:release -PbuildTarget=release
+        run: ./gradlew :velocity:release -PbuildTarget=release

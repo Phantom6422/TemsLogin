@@ -21,7 +21,7 @@ repositories {
 
 dependencies {
     // API
-    implementation(project(":API"))
+    implementation(project(":core"))
 
     // Velocity
     annotationProcessor(libs.velocity.api)
