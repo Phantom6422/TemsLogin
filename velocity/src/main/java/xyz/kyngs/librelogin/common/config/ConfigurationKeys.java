@@ -159,6 +159,18 @@ public class ConfigurationKeys {
             ConfigurateHelper::getBoolean
     );
 
+    public static final ConfigurationKey<Boolean> PREMIUM_AUTOLOGIN = new ConfigurationKey<>(
+            "premium-autologin",
+            true,
+            """
+                    Should premium players be forced into online mode for automatic login?
+                    Disable this if their clients cannot reach Mojang's authentication servers; premium players will then
+                    log in with a password instead, like cracked players.
+                    !!DISABLING THIS WEAKENS PREMIUM ACCOUNT PROTECTION, ONLY DO IT IF YOU UNDERSTAND THE RISK!!
+                    """,
+            ConfigurateHelper::getBoolean
+    );
+
     public static final ConfigurationKey<Integer> MILLISECONDS_TO_REFRESH_NOTIFICATION = new ConfigurationKey<>(
             "milliseconds-to-refresh-notification",
             10000,

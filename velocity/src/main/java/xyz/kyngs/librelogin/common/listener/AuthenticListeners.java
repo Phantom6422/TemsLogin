@@ -93,25 +93,27 @@ public class AuthenticListeners<Plugin extends AuthenticLibreLogin<P, S>, P, S> 
             return new PreLoginResult(PreLoginState.DENIED, plugin.getMessages().getMessage("kick-illegal-username"), null);
         }
 
-        PremiumUser mojangData;
+        PremiumUser mojangData = null;
 
-        try {
-            mojangData = plugin.getPremiumProvider().getUserForName(username);
-        } catch (PremiumException e) {
-            var message = switch (e.getIssue()) {
-                case THROTTLED -> plugin.getMessages().getMessage("kick-premium-error-throttled");
-                case TIMED_OUT -> {
-                    plugin.getLogger().warn("Failed to reach authentication APIs within timeout while validating " + username);
-                    yield plugin.getMessages().getMessage("kick-premium-error-undefined");
-                }
-                default -> {
-                    plugin.getLogger().error("Encountered an exception while communicating with the Mojang API!");
-                    e.printStackTrace();
-                    yield plugin.getMessages().getMessage("kick-premium-error-undefined");
-                }
-            };
+        if (plugin.getConfiguration().get(ConfigurationKeys.PREMIUM_AUTOLOGIN)) {
+            try {
+                mojangData = plugin.getPremiumProvider().getUserForName(username);
+            } catch (PremiumException e) {
+                var message = switch (e.getIssue()) {
+                    case THROTTLED -> plugin.getMessages().getMessage("kick-premium-error-throttled");
+                    case TIMED_OUT -> {
+                        plugin.getLogger().warn("Failed to reach authentication APIs within timeout while validating " + username);
+                        yield plugin.getMessages().getMessage("kick-premium-error-undefined");
+                    }
+                    default -> {
+                        plugin.getLogger().error("Encountered an exception while communicating with the Mojang API!");
+                        e.printStackTrace();
+                        yield plugin.getMessages().getMessage("kick-premium-error-undefined");
+                    }
+                };
 
-            return new PreLoginResult(PreLoginState.DENIED, message, null);
+                return new PreLoginResult(PreLoginState.DENIED, message, null);
+            }
         }
 
         if (mojangData == null) {
@@ -126,7 +128,7 @@ public class AuthenticListeners<Plugin extends AuthenticLibreLogin<P, S>, P, S> 
             //noinspection ConstantConditions //kyngs: There's no way IntelliJ is right
             if (user.getPremiumUUID() != null) {
                 // We will have to encrypt, otherwise someone could forcefully disable other user's premium autologin
-                return new PreLoginResult(PreLoginState.FORCE_ONLINE, null, user);
+                return online(user);
             }
         } else {
 
@@ -145,7 +147,7 @@ public class AuthenticListeners<Plugin extends AuthenticLibreLogin<P, S>, P, S> 
                 // The following condition may be true if we've generated a new user
                 //noinspection ConstantConditions //kyngs: There's no way IntelliJ is right
                 if (userByName.autoLoginEnabled())
-                    return new PreLoginResult(PreLoginState.FORCE_ONLINE, null, userByName);
+                    return online(userByName);
             } else {
                 User byName;
                 try {
@@ -171,8 +173,21 @@ public class AuthenticListeners<Plugin extends AuthenticLibreLogin<P, S>, P, S> 
                     plugin.getDatabaseProvider().updateUser(user);
                 }
 
-                return new PreLoginResult(PreLoginState.FORCE_ONLINE, null, user);
+                return online(user);
             }
+        }
+
+        return new PreLoginResult(PreLoginState.FORCE_OFFLINE, null, null);
+    }
+
+    /**
+     * Forces online mode only when premium autologin is enabled. When it is disabled, premium
+     * players use the normal offline/password flow so a client that cannot reach Mojang is not
+     * locked out.
+     */
+    private PreLoginResult online(User user) {
+        if (plugin.getConfiguration().get(ConfigurationKeys.PREMIUM_AUTOLOGIN)) {
+            return new PreLoginResult(PreLoginState.FORCE_ONLINE, null, user);
         }
 
         return new PreLoginResult(PreLoginState.FORCE_OFFLINE, null, null);
@@ -185,6 +200,10 @@ public class AuthenticListeners<Plugin extends AuthenticLibreLogin<P, S>, P, S> 
             ), null);
             case USE_OFFLINE -> new PreLoginResult(PreLoginState.FORCE_OFFLINE, null, null);
             case OVERWRITE -> {
+                if (!plugin.getConfiguration().get(ConfigurationKeys.PREMIUM_AUTOLOGIN)) {
+                    // Do not destroy the offline profile when premium autologin is disabled.
+                    yield new PreLoginResult(PreLoginState.FORCE_OFFLINE, null, null);
+                }
                 plugin.getDatabaseProvider().deleteUser(conflicted);
                 conflicting.setLastNickname(conflicted.getLastNickname());
                 plugin.getDatabaseProvider().updateUser(conflicting);

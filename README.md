@@ -16,7 +16,8 @@ Download the [latest release](https://github.com/Phantom6422/TemsLogin/releases/
 [LibreLogin wiki](https://github.com/kyngs/LibreLogin/wiki).
 
 Only the latest release is kept on GitHub. Backend servers must run in offline mode with Velocity forwarding
-enabled, and the limbo server must be secured.
+enabled, and the limbo server must be secured. If premium players cannot reach Mojang's authentication
+servers, set `premium-autologin: false` in `config.conf` so they can use password login instead.
 
 ## Platforms
 

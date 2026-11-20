@@ -1,3 +1,8 @@
+0.29.4 - Premium autologin toggle
+
+- Add the `premium-autologin` option. Set it to `false` when premium players cannot reach Mojang's
+  authentication servers; they will log in with a password instead of being forced into online mode.
+
 0.29.3 - Reload concurrency fix
 
 - Make limbo/lobby routing reload thread-safe so a configuration reload cannot race with logins
