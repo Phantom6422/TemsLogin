@@ -6,7 +6,7 @@ LibreLogin data migration.
 
 > A rebranded fork of [LibreLogin](https://github.com/kyngs/LibreLogin) by
 > [kyngs](https://github.com/kyngs) and contributors, maintained by
-> [Phantom6422](https://github.com/Phantom6422) for [PhantomsNetwork](https://phantomsnetwork.org) internal use.
+> [Phantom6422](https://github.com/Phantom6422) for internal use.
 
 ## Install
 
@@ -69,7 +69,6 @@ Requires JDK 25+. The shaded jar is written to `velocity/build/libs/TemsLogin-<v
 - [kyngs](https://github.com/kyngs) — author of [LibreLogin](https://github.com/kyngs/LibreLogin)
 - [Raixo](https://github.com/RAIXOCZ) — original BungeeCord port
 - [Fejby](https://github.com/Fejby) — Floodgate testing
-- [PhantomsNetwork](https://phantomsnetwork.org) — testing and hosting
 
 ## License
 
