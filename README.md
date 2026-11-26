@@ -6,7 +6,7 @@ LibreLogin data migration.
 
 > A rebranded fork of [LibreLogin](https://github.com/kyngs/LibreLogin) by
 > [kyngs](https://github.com/kyngs) and contributors, maintained by
-> [Phantom6422](https://github.com/Phantom6422) for internal use.
+> [Phantom6422](https://github.com/Phantom6422) for [PhantomsNetwork](https://phantomsnetwork.org) internal use.
 
 ## Install
 
